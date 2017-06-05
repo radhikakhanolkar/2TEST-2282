@@ -1,4 +1,10 @@
 buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+		sonarqubeGradlePluginVersion = '2.2.1'
+		gradleDockerPluginVersion = '3.0.5'
+	}
+	
     repositories {
         mavenCentral()
         jcenter()

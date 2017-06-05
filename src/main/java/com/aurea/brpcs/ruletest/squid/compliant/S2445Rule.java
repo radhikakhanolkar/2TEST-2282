@@ -11,9 +11,4 @@ public class S2445Rule {
 	  }
 	}
 
-	private void doOtherThing(final String colorParam) {
-		synchronized (colorParam) { // compliant; 
-			color = "green"; // other threads now allowed into this block
-		}
-	}
 }
