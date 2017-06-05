@@ -20,15 +20,16 @@ public class S1143Rule {
 	}
 
 
-	public static void case2() {
+	public static void case2() throws Exception {
 		try {
 			throw new RuntimeException();
 		} finally {
-			throw new Exception()                          // Non-Compliant - prevents the RuntimeException from being propagated
+			throw new Exception();                          // Non-Compliant - prevents the RuntimeException from being propagated
 		}
 	}
 
 	public static void case3() {
+		int x = 0;
 		while(x<10) {
 			try {
 				x++;
@@ -40,6 +41,7 @@ public class S1143Rule {
 	}
 
 	public static void case4() {
+		int x = 0;
 		while(x<10) {
 			try {
 				x++;
