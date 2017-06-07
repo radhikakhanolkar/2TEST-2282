@@ -1,7 +1,7 @@
 package com.aurea.brpcs.ruletest.findbugs.compliant;
 
-import com.aurea.brp.date_check.DateFormat;
-import com.aurea.brp.date_check.SimpleDateFormat;
+import com.aurea.brpcs.ruletest.helpers.findbugs.DateFormat;
+import com.aurea.brpcs.ruletest.helpers.findbugs.SimpleDateFormat;
 
 public class RuleStaticSimpleDateFormatInstanceLibraryClass {
 
