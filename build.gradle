@@ -34,5 +34,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-security'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'com.google.guava:guava:18.0'
+
+    compile files('libs/date-check.jar')
+
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
