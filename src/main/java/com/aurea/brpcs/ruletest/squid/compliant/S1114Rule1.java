@@ -1,6 +1,6 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
-public class S1114Rule1 {
+public class S1114Rule1 extends AbstractS1114Rule {
 
 	protected void finalize() throws Throwable {
 		releaseSomeResources();
