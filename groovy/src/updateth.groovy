@@ -42,6 +42,7 @@ println ">>> SCRIPT STARTED <<<"
 urlCG = 'http://api.codegraph.swarm.devfactory.com/api/1.0/graphs?status=Completed&active=true'
 
 println ">>> URL CODEGRAPH: " + urlCG
+println ">>> GMT:" + new Date().toGMTString()
 
 
 def cgClient = new RESTClient(urlCG)
