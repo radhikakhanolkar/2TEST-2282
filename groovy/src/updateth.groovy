@@ -90,7 +90,7 @@ private void processResponse(json, sourceUrl, revision) {
 
     try {
         if (!cgProject['neo4jUrl']?.trim()) {
-            println ">>> " + sourceUrl + " : " + revision + " : NO ASSIGNED PORT - OFFLINE. requestId: " + cgProject['requestId']
+            println ">>> " + sourceUrl + " : " + revision + " : NO PORT ASSIGNED - OFFLINE. requestId: " + cgProject['requestId']
             return
         }
 
