@@ -60,7 +60,7 @@ public class S1143Rule {
                 if (x == 8) {
                     break;// Compliant
                 }
-            } while (x < 10)
+            } while (x < 10);
         }
     }
 
@@ -70,8 +70,8 @@ public class S1143Rule {
             x++;
             throw new RuntimeException();
         } finally {
-            for(int x;x<10;x++) {
-                if (x == 8) {
+            for (int y = 0; y < 10; y++) {
+                if (y == 8) {
                     break;// Compliant
                 }
             }
@@ -84,18 +84,19 @@ public class S1143Rule {
             x++;
             throw new RuntimeException();
         } finally {
-            switch (x)
-            case 1:
-                x = 1;
-                break;
-            case 2:
-                x = 2;
-                break;
-            default:
-                x = 3
+            switch (x) {
+                case 1:
+                    x = 1;
+                    break;
+                case 2:
+                    x = 2;
+                    break;
+                default:
+                    x = 3;
             }
         }
     }
-
 }
+
+
 
