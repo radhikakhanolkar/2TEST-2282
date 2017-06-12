@@ -16,7 +16,6 @@ public class S2116Rule {
         int argHash = Arrays.hashCode(arrayObject);
     }
 
-
     public void caseThree() {
         Object[] methodArray = new Object[10];
         String argStr = Arrays.toString(methodArray);
