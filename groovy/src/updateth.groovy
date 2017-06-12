@@ -125,13 +125,18 @@ private updateDB(String sourceUrl, String revision, Map cgProject) {
 
     Sql.withInstance(dbUrl + ':' + dbPort + '/' + dbSchema, dbUser, dbPassword, dbDriver) { sql ->
 
-        def verifyIds = "select count(1) as num, " +
-                "cb.id as cbId, " +
-                "neodb.id as neodbId " +
-                "from neo4jdatabases neodb " +
-                "inner join codebases cb on (neodb.Codebase_id = cb.id) " +
-                "where cb.RepoUrl like  CONCAT(:REPO_URL, '%') " +
-                "and cb.revision = :REVISION "
+        def verifyIds = "SELECT count(1) AS num, " +
+                "cb.id AS cbId, " +
+                "neodb.id AS neodbId " +
+                "FROM neo4jdatabases neodb " +
+                "INNER JOIN codebases cb ON (neodb.Codebase_id = cb.id) " +
+                "WHERE cb.RepoUrl LIKE CONCAT(:REPO_URL, '%') "
+
+        if(revision?.trim()){
+            verifyIds += "AND cb.revision = :REVISION "
+        }else{
+            verifyIds += "AND cb.revision IS NULL "
+        }
 
         def first = sql.firstRow verifyIds, REPO_URL: sourceUrl - '.git', REVISION: revision
 
