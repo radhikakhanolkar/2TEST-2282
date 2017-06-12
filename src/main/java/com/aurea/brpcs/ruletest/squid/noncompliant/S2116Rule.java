@@ -1,7 +1,5 @@
 package com.aurea.brpcs.ruletest.squid.noncompliant;
 
-import java.util.Arrays;
-
 public class S2116Rule {
 
     Object[] arrayObject = new Object[10];
@@ -11,13 +9,13 @@ public class S2116Rule {
         int argHash = args.hashCode(); // Noncompliant
     }
 
-    public void caseTwo(){
+    public void caseTwo() {
         String argStr = arrayObject.toString();
         int argHash = arrayObject.hashCode();
     }
 
 
-    public void caseThree(){
+    public void caseThree() {
         Object[] methodArray = new Object[10];
         String argStr = methodArray.toString();
         int argHash = methodArray.hashCode();

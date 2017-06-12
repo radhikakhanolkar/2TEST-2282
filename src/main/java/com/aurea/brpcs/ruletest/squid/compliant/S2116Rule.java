@@ -11,13 +11,13 @@ public class S2116Rule {
         int argHash = Arrays.hashCode(args);
     }
 
-    public void caseTwo(){
+    public void caseTwo() {
         String argStr = Arrays.toString(arrayObject);
         int argHash = Arrays.hashCode(arrayObject);
     }
 
 
-    public void caseThree(){
+    public void caseThree() {
         Object[] methodArray = new Object[10];
         String argStr = Arrays.toString(methodArray);
         int argHash = Arrays.hashCode(methodArray);
