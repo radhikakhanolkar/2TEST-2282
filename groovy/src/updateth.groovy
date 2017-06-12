@@ -25,7 +25,7 @@ import org.apache.http.conn.ConnectTimeoutException
 cgProjects = [
         'https://scm-ba.devfactory.com/scm/cap/business-payment.git'     : 'bef53d1aa446076ea0217d85ab89c99d99da7a3a',
         'https://github.com/trilogy-group/aurea-aes-edi.git'             : 'af3dc86',
-        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest.git': '',
+        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest': '',
         'https://github.com/trilogy-group/aurea-lyris-platform-edge'     : '15e8699d82de854f5e4d6c40fe137056afdd9854',
         'https://github.com/trilogy-group/aurea-sonic-mq'                : '2b8497b82efb8f2af5ba016a006d1349b224d9ea',
         'https://github.com/trilogy-group/devfactory-codegraph-server'   : 'fc3450cfa4fd1cce236daf0e4dbaf891104bd8bb',
@@ -39,7 +39,7 @@ cgProjects = [
 
 println ">>> SCRIPT STARTED <<<"
 
-urlCG = 'http://api.codegraph.swarm.devfactory.com/api/1.0/graphs?status=Completed&active=true'
+urlCG = 'http://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs?status=Completed&active=true'
 
 println ">>> URL CODEGRAPH: " + urlCG
 println ">>> GMT:" + new Date().toGMTString()
@@ -108,7 +108,7 @@ private void processResponse(json, sourceUrl, revision) {
                 println ">>> " + sourceUrl + " : " + revision + " : " + cgProject['neo4jUrl'] + " - OFFLINE. requestId: " + cgProject['requestId']
             }
         }
-    } catch (ConnectTimeoutException ex) {
+    } catch (Exception ex) {
         println ">>> " + sourceUrl + " : " + revision + " : " + cgProject['neo4jUrl'] + " - OFFLINE. requestId: " + cgProject['requestId']
     }
 }

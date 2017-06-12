@@ -51,6 +51,7 @@ public class S1221Rule {
         public Object equal(Integer o) {
             return null;
         }
+
     }
 
 }
