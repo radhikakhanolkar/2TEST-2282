@@ -6,11 +6,15 @@ public class S1244 {
     public void testMethod() {
 
         float myNumber = (float) 3.146;
+        float mySecondNumber = 3.146f;
         if (myNumber == 3.146f) {
         }
 
         if (myNumber != 3.146f) { //Noncompliant. Because of floating point imprecision, this will be true
 
+        }
+
+        if (myNumber == mySecondNumber) {
         }
 
 
