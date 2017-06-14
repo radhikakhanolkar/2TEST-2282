@@ -1,6 +1,6 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
-public class S1244 {
+public class S1244Rule {
 
     public void testMethod() {
         float f = 0;

@@ -1,12 +1,29 @@
 package com.aurea.brpcs.ruletest.squid.noncompliant;
 
 
-public class S1244 {
+public class S1244Rule {
 
     public void testMethod() {
 
         float myNumber = (float) 3.146;
         float mySecondNumber = 3.146f;
+
+        Float myFloatObj = 3.146f;
+        double myDouble = 3.146;
+        Double myDoubleObj = 3.146;
+        if (myNumber == 3.146f) {
+        }
+
+        if (myFloatObj == 3.146f) {
+        }
+
+        if (myDouble == 3.146f) {
+        }
+
+        if (myDoubleObj == 3.146f) {
+        }
+
+
         if (myNumber == 3.146f) {
         }
 
