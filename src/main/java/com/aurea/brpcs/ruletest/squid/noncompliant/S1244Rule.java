@@ -34,11 +34,6 @@ public class S1244Rule {
         if (myNumber == mySecondNumber) {
         }
 
-
-        if (myNumber < 4 || myNumber > 4) { // Noncompliant; indirect inequality test
-
-        }
-
         float f = 0;
         double d = 0;
         if (f != d) { // Noncompliant
