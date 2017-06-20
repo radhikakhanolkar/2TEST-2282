@@ -43,30 +43,44 @@ class Violation {
 
 //queryS2444 = "MATCH (nField:FieldDeclaration)-[:tree_edge]->(nVar:VariableDeclarationFragment)<-[:SETS]-(nMethod:MethodDeclaration) MATCH (nMethod)-[:tree_edge*]->(var)<-[:SET_BY]-(nVar) WHERE nField.modifiers CONTAINS 'static' AND NOT nField.modifiers CONTAINS 'volatile' AND NOT nField.modifiers CONTAINS 'final' AND NOT nMethod.modifiers CONTAINS 'synchronized' AND NOT (var)<-[:tree_edge*]-(:SynchronizedStatement) AND NOT (nField)-[:tree_edge*]->(:PrimitiveType) RETURN DISTINCT var.col AS col, var.line AS line, var.file AS file ORDER BY var.file, var.line";
 
-queryS1143 = "MATCH (n:ReturnStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
-        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
-        "UNION " +
-        "MATCH (n:BreakStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
-        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
-        "UNION " +
-        "MATCH (n:ContinueStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
-        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
-        "UNION " +
-        "MATCH (n:ThrowStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
-        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file"
+// queryS1143 = "MATCH (n:ReturnStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
+//        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
+//        "UNION " +
+//        "MATCH (n:BreakStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
+//        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
+//        "UNION " +
+//        "MATCH (n:ContinueStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
+//        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file " +
+//        "UNION " +
+//        "MATCH (n:ThrowStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
+//        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file"
+
+queryS1444 = "MATCH (c)-[:tree_edge*]->(field:FieldDeclaration) " +
+        "WHERE field.modifiers CONTAINS ('static') " +
+        "AND field.modifiers CONTAINS ('public') " +
+        "AND NOT field.modifiers CONTAINS ('final') " +
+        "AND NOT c.entity_type = 'interface' " +
+        "WITH COLLECT(DISTINCT(field)) AS All " +
+        "OPTIONAL MATCH (field)<-[:member]-(:TypeDeclaration)-[:annotation]->(sma:SingleMemberAnnotation) " +
+        "WHERE sma.name = 'StaticMetamodel' " +
+        "WITH COLLECT(DISTINCT(field)) AS SmaClasses, All " +
+        "WITH FILTER(x IN All WHERE NOT x IN SmaClasses) AS FilteredResult " +
+        "UNWIND FilteredResult AS FinalResult " +
+        "MATCH(FinalResult)-[:fragment]->(vd:VariableDeclarationFragment) " +
+        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
 
 cgProjects = [
-        'business-payment'           : '0ab819b1-f7e1-426b-b08a-674ce5282887',
-        'versata-m1.ems'             : 'da43d583-dc4f-4727-accb-3e35f4a37f49',
-        'aurea-sonic-mq'             : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
-        'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
-        'ta-smartleads-lms-mct'      : '8275f759-6738-4c38-abb5-84dc8c0beaca',
-        'aurea-aes-edi'              : '3b5d54e7-538c-422c-ba0f-b669466bb129',
-        'pss'                        : 'e93e2376-8216-4473-bb93-1e8f12f4d3cd',
-        'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
-        'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
-        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
-        'aurea-java-brp-cs-ruletest' : '42ecbd4a-541e-46e6-9c54-b814c38f116a'
+        //'business-payment'           : '0ab819b1-f7e1-426b-b08a-674ce5282887',
+        //'versata-m1.ems'             : 'da43d583-dc4f-4727-accb-3e35f4a37f49',
+         'aurea-sonic-mq': '5beea8ba-c579-46f8-8c9e-c94124a4f12e' //,
+        //'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
+        //'ta-smartleads-lms-mct'      : '8275f759-6738-4c38-abb5-84dc8c0beaca',
+        //'aurea-aes-edi'              : '3b5d54e7-538c-422c-ba0f-b669466bb129',
+        //'pss'                        : 'e93e2376-8216-4473-bb93-1e8f12f4d3cd',
+        //'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
+        //'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
+        //'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
+        //'aurea-java-brp-cs-ruletest' : 'c7e14343-7fed-4f48-b35d-f3e90cadd224'
 ]
 
 String componentRoots(Map cgProjects) {
@@ -81,25 +95,25 @@ fileLocal = "/Users/ajanoni/sonarcsv"
 
 sonarBaseUrl = "http://brp-sonar.ecs.devfactory.com"
 
-ruleId = "rules=squid%3AS1143" //CHANGE THE RULE NAME HERE
+ruleId = "rules=squid%3AS1444" //CHANGE THE RULE NAME HERE
 
 sonarUrl = sonarBaseUrl + "/api/issues/search?" + componentRoots(cgProjects) + "&" + ruleId
 
 sonarViolation = toViolationDTO(findViolations())
 
-cgViolation = getViolationFromCG(queryS1143) //CHANGE THE QUERY HERE
+cgViolation = getViolationFromCG(queryS1444) //CHANGE THE QUERY HERE
 
-exportToCsv("S1143", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
+exportToCsv("S1444", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
 
 Set<Violation> getViolationFromCG(String query) {
 
     Set<Violation> retViolation = new HashSet<>()
 
     cgProjects.each { k, v ->
-        def cgClient = new RESTClient('http://codegraph-swarm.devfactory.com:13613/api/1.0/graphs/' + v + '/query')
-        cgClient.getClient().params.setParameter("http.connection.timeout", 10000)
-        cgClient.getClient().params.setParameter("http.socket.timeout", 11000)
-        println 'http://api.codegraph.swarm.devfactory.com//api/1.0/graphs/' + v + '/query'
+        def cgClient = new RESTClient('https://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs/' + v + '/query')
+        cgClient.getClient().params.setParameter("http.connection.timeout", 20000)
+        cgClient.getClient().params.setParameter("http.socket.timeout", 21000)
+        println 'https://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs/' + v + '/query'
         retry(3, { e -> e.printStackTrace() }) {
             cgClient.request(Method.POST, ContentType.JSON) { req ->
                 body = [query: query, querytype: 'cypher', resulttype: 'row']
@@ -307,29 +321,54 @@ void exportToCsv(String ruleName, Set<Violation> sonarViolation, Set<Violation> 
         reportLine[1] = it.col
         reportLine[2] = it.line
         reportLine[3] = it.file
-        reportLine[4] = ''
-        reportLine[5] = ''
-        reportLine[6] = ''
+        reportLine[4] = '0'
+        reportLine[5] = '0'
+        reportLine[6] = it.file
         resultCsv.add(reportLine)
     }
 
     onlyCG.each {
         String[] reportLine = new String[7];
         reportLine[0] = it.projectName
-        reportLine[1] = ''
-        reportLine[2] = ''
-        reportLine[3] = ''
+        reportLine[1] = '0'
+        reportLine[2] = '0'
+        reportLine[3] = it.file
         reportLine[4] = it.col
         reportLine[5] = it.line
         reportLine[6] = it.file
         resultCsv.add(reportLine)
     }
 
-    resultCsv.sort { a, b -> a[0] <=> b[0] ?: a[1] <=> b[1] ?: a[2] <=> b[2] ?: a[3] <=> b[3] ?: a[4] <=> b[4] ?: a[5] <=> b[5] ?: a[6] <=> b[6] }
+    resultCsv.sort { a, b -> a[0] <=> b[0] ?: a[6] <=> b[6] ?: a[3] <=> b[3] ?: a[5] <=> b[5] ?: a[2] <=> b[2] ?: a[4] <=> b[4] ?: a[1] <=> b[1] }
     reportWriter.writeNext((String[]) ['projectName', 'sonarCol', 'sonarLine', 'sonarFile', 'cgCol', 'cgLine', 'cgFile'])
     reportWriter.writeAll(resultCsv)
     reportWriter.flush();
     reportWriter.close();
+
+    println "===== Files not found in Sonar ====="
+    println cgViolation.findAll {
+        !sonarViolation.file.contains(it.file)
+    }.file
+
+    println "===== Files not found in CG ====="
+    println sonarViolation.findAll {
+        !cgViolation.file.contains(it.file)
+    }.file
+
+    def countCg = cgViolation.countBy { it.file }
+    def countSonar = sonarViolation.countBy { it.file }
+
+    countCg.intersect(countSonar).each{
+        countCg.remove(it.key);
+        countSonar.remove(it.key)
+    }
+
+    println "COUNTCG"
+    println countCg
+
+    println "COUNTSONAR"
+    println countSonar
+
 }
 
 
