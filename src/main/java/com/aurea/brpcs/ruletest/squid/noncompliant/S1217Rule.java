@@ -2,17 +2,13 @@ package com.aurea.brpcs.ruletest.squid.noncompliant;
 
 public class S1217Rule {
 
-    public static class PoolThread extends Thread {
-
-    }
-
     public static class WithMethodParameter {
 
         public void test(Thread thread) {
             thread.run();
         }
 
-        public void test(PoolThread thread) {
+        public void test(MyThread thread) {
             thread.run();
         }
     }
@@ -27,10 +23,10 @@ public class S1217Rule {
         }
 
         public void testWithExtending() {
-            PoolThread thread = new PoolThread();
+            MyThread thread = new MyThread();
             thread.run();
 
-            new PoolThread().run();
+            new MyThread().run();
         }
     }
 }
