@@ -23,17 +23,17 @@ import org.apache.http.conn.ConnectTimeoutException
 
 
 cgProjects = [
-        'https://scm-ba.devfactory.com/scm/cap/business-payment.git'     : 'bef53d1aa446076ea0217d85ab89c99d99da7a3a',
-        'https://github.com/trilogy-group/aurea-aes-edi.git'             : 'af3dc86',
-        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest': '',
-        'https://github.com/trilogy-group/aurea-lyris-platform-edge'     : '15e8699d82de854f5e4d6c40fe137056afdd9854',
-        'https://github.com/trilogy-group/aurea-sonic-mq'                : '2b8497b82efb8f2af5ba016a006d1349b224d9ea',
-        'https://github.com/trilogy-group/devfactory-codegraph-server'   : 'fc3450cfa4fd1cce236daf0e4dbaf891104bd8bb',
-        'https://github.com/trilogy-group/ignite-sensage-analyzer.git'   : 'f46a44ecbc5e95f778fb4f72cdb86509632b28d2',
-        'https://github.com/trilogy-group/kerio-mykerio-kmanager'        : 'e40fd363d019e8ff29a90cbc974818abdd4dae7c',
-        'https://github.com/trilogy-group/ta-smartleads-lms-mct.git'     : 'db45cdba9dce7cd97e721f954e1d7c1b3f0dbb6f',
-        'https://github.com/trilogy-group/versata-m1.ems.git'            : '1045056ed830b808cca82ff4d06b4d9add50064c',
-        'https://scm.devfactory.com/stash/scm/uppowersteering/pss.git'   : '18d5ec487055ce16a639bdd8efb7ab434ffba4bf'
+        'https://scm-ba.devfactory.com/scm/cap/business-payment.git'  : 'bef53d1aa446076ea0217d85ab89c99d99da7a3a',
+        'https://github.com/trilogy-group/aurea-aes-edi.git'          : 'af3dc86',
+        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest' : '',
+        'https://github.com/trilogy-group/aurea-lyris-platform-edge'  : '15e8699d82de854f5e4d6c40fe137056afdd9854',
+        'https://github.com/trilogy-group/aurea-sonic-mq'             : '2b8497b82efb8f2af5ba016a006d1349b224d9ea',
+        'https://github.com/trilogy-group/devfactory-codegraph-server': 'fc3450cfa4fd1cce236daf0e4dbaf891104bd8bb',
+        'https://github.com/trilogy-group/ignite-sensage-analyzer.git': 'f46a44ecbc5e95f778fb4f72cdb86509632b28d2',
+        'https://github.com/trilogy-group/kerio-mykerio-kmanager'     : 'e40fd363d019e8ff29a90cbc974818abdd4dae7c',
+        'https://github.com/trilogy-group/ta-smartleads-lms-mct.git'  : 'db45cdba9dce7cd97e721f954e1d7c1b3f0dbb6f',
+        'https://github.com/trilogy-group/versata-m1.ems.git'         : '1045056ed830b808cca82ff4d06b4d9add50064c',
+        'https://scm.devfactory.com/stash/scm/uppowersteering/pss.git': '18d5ec487055ce16a639bdd8efb7ab434ffba4bf'
 ]
 
 
@@ -44,6 +44,7 @@ urlCG = 'http://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs?status=Comp
 println ">>> URL CODEGRAPH: " + urlCG
 println ">>> GMT:" + new Date().toGMTString()
 
+updateDatabase = false; //CHANGE HERE
 
 def cgClient = new RESTClient(urlCG)
 cgClient.getClient().params.setParameter("http.connection.timeout", 10000)
@@ -99,9 +100,11 @@ private void processResponse(json, sourceUrl, revision) {
         neo4jClient.getClient().params.setParameter("http.socket.timeout", 11000)
         neo4jClient.request(Method.GET) {
             response.success = { respNeo, jsonNeo ->
-                println ">>> " + sourceUrl + " : " + revision + " : " + cgProject['neo4jUrl'] + " - ONLINE."
+                println ">>> " + sourceUrl + " : " + revision + " : " + cgProject['neo4jUrl'] + " - ONLINE. requestId: " + cgProject['requestId']
 
-                updateDB(sourceUrl, revision, cgProject)
+                if (updateDatabase) {
+                    updateDB(sourceUrl, revision, cgProject)
+                }
             }
 
             response.failure = { respNeo ->
@@ -132,9 +135,9 @@ private updateDB(String sourceUrl, String revision, Map cgProject) {
                 "INNER JOIN codebases cb ON (neodb.Codebase_id = cb.id) " +
                 "WHERE cb.RepoUrl LIKE CONCAT(:REPO_URL, '%') "
 
-        if(revision?.trim()){
+        if (revision?.trim()) {
             verifyIds += "AND cb.revision = :REVISION "
-        }else{
+        } else {
             verifyIds += "AND cb.revision IS NULL "
         }
 
