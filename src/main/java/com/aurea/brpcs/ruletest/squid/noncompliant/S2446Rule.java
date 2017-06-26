@@ -5,14 +5,14 @@ import java.util.List;
 
 public class S2446Rule {
 
-    public synchronized void makeSomething() {
-        notifyAll();
+    public synchronized void badCall() {
+        notify();
     }
 
-    public void somethingElse() {
-        S2446Rule rule = new S2446Rule();
-        rule.notifyAll();
+    public void willCheck() {
+        S2446Rule local = new S2446Rule();
+        local.notify();
         List<String> myList = Arrays.asList("ABC", "CDE");
-        myList.notifyAll();
+        myList.notify();
     }
 }
