@@ -15,6 +15,9 @@ public class S2184Rule {
     long seconds = 2147483;
     Date myDate = new Date(seconds * 1_000); //Noncompliant, won't produce the expected result if seconds > 2_147_483_647
 
+    long testCast = 60*1000 + 1;
+    long testCast2 = 60*1000 - 1;
+
     public long compute(int factor) {
         return factor * 10_000;  //Noncompliant, won't produce the expected result if factor > 214_748
     }
@@ -25,6 +28,26 @@ public class S2184Rule {
 
     public double compute3(long factor) {
         return factor / 123;  //Noncompliant, will be rounded to closest long integer
+    }
+
+    public void compute4(){
+        voidDoubleMethod(2/3);
+        voidFloatMethod(2/3);
+        voidLongMethod(1_000 * 3_600 * 24 * 365);
+        voidLongMethod(Integer.MAX_VALUE + 2);
+        voidLongMethod(Integer.MIN_VALUE - 1);
+    }
+
+    public void voidDoubleMethod (double val) {
+
+    }
+
+    public void voidFloatMethod (float val) {
+
+    }
+
+    public void voidLongMethod (long val) {
+
     }
 
 }

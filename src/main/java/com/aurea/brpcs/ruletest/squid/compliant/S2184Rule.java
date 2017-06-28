@@ -24,6 +24,9 @@ public class S2184Rule {
     long bigNegNum2 = (long) Integer.MIN_VALUE - 1;
     Date myDate2 = new Date((long) seconds * 1_000);
 
+    long testCast = (long)(60*1000 + 1);
+    double testCast2 = getDoubleValue() * 1000;
+
     public long compute(int factor) {
         return factor * 10_000L;
     }
@@ -42,6 +45,14 @@ public class S2184Rule {
 
     public double compute3(double factor) {
         return factor / 123;
+    }
+
+    public Double getDoubleValue(){
+        return 1D;
+    }
+
+    public void testBoxing(){
+        compute2(new Long(5*1000));
     }
 
 }
