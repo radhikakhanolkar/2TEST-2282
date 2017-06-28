@@ -10,6 +10,10 @@ public class RuleHiddenFieldCheck {
     public static String publicTwo;
     public static final String publicThree = "EMPTY";
 
+    static {
+        Integer privateTwo = 5;
+    }
+
 
     public static class InnerStaticClass {
         public class SimpleInnerClass {
