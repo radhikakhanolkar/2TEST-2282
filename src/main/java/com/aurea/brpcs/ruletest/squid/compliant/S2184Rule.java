@@ -25,7 +25,7 @@ public class S2184Rule {
     Date myDate2 = new Date((long) seconds * 1_000);
 
     long testCast = (long)(60*1000 + 1);
-    double testCast2 = getDoubleValue() * 1000;
+    double testCast2 = getDoubleValue() * 1000; //problem with CG tree to get the method return type
 
     public long compute(int factor) {
         return factor * 10_000L;
@@ -39,12 +39,14 @@ public class S2184Rule {
         return factor * 10_000;
     }
 
+    //problem with CG tree to get the argument type
     public float compute2(float factor) {
-        return factor / 123;
+        return factor / 123; // CASE B
     }
 
+    //problem with CG tree to get the argument type
     public double compute3(double factor) {
-        return factor / 123;
+        return factor / 123; // CASE B
     }
 
     public Double getDoubleValue(){
