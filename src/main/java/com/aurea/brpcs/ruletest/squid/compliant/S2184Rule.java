@@ -49,6 +49,10 @@ public class S2184Rule {
         return factor / 123; // CASE B
     }
 
+    public long compute4(){
+        return System.currentTimeMillis() * 10_000;
+    }
+
     public Double getDoubleValue(){
         return 1D;
     }
