@@ -4,6 +4,8 @@ import java.util.Date;
 
 public class S2184Rule {
 
+    // * - cases with CG tree issues
+
     float twoThirdsFloat = 2 / 3; // CASE A - Noncompliant; int division. Yields 0.0
     float multiFloat = 2 * 3; // CASE A
     double twoThirdsDouble = 2 / 3; // CASE A - Noncompliant; int division. Yields 0.0
@@ -19,7 +21,7 @@ public class S2184Rule {
     long testCast2 = 60*1000 - 1; //CASE C
 
     public long compute(int factor) {
-        return factor * 10_000;  //Noncompliant, won't produce the expected result if factor > 214_748
+        return factor * 10_000;  //* Noncompliant, won't produce the expected result if factor > 214_748
     }
 
     public float compute2(long factor) {
@@ -31,11 +33,11 @@ public class S2184Rule {
     }
 
     public void compute4(){
-        voidDoubleMethod(2/3);
-        voidFloatMethod(2/3);
-        voidLongMethod(1_000 * 3_600 * 24 * 365);
-        voidLongMethod(Integer.MAX_VALUE + 2);
-        voidLongMethod(Integer.MIN_VALUE - 1);
+        voidDoubleMethod(2/3); //*
+        voidFloatMethod(2/3); //*
+        voidLongMethod(1_000 * 3_600 * 24 * 365); //*
+        voidLongMethod(Integer.MAX_VALUE + 2); //*
+        voidLongMethod(Integer.MIN_VALUE - 1); //*
     }
 
     public void voidDoubleMethod (double val) {
