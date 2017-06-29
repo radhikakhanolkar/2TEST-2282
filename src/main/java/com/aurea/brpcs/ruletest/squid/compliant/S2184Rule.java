@@ -15,6 +15,8 @@ public class S2184Rule {
     long bigNum = Integer.MAX_VALUE + 2L; // 2 promoted to long. Yields 2_147_483_649
     long bigNegNum = Integer.MIN_VALUE - 1L; // Yields -2_147_483_649
     Date myDate = new Date(seconds * 1_000L);
+    int intNum = 1000;
+    long intNum2 = intNum + 2L;
 
     float twoThirds2Float = (float) 2 / 3; // 2 cast to float
     float multFloat2 = (float) 2 * 3;
