@@ -24,6 +24,10 @@ public class S2184Rule {
     long bigNegNum2 = (long) Integer.MIN_VALUE - 1;
     Date myDate2 = new Date((long) seconds * 1_000);
 
+    long testCast = (long)(60*1000 + 1);
+
+    //double testCast2 = getDoubleValue() * 1000; //* problem with CG tree to get the method return type
+
     public long compute(int factor) {
         return factor * 10_000L;
     }
@@ -36,12 +40,26 @@ public class S2184Rule {
         return factor * 10_000;
     }
 
-    public float compute2(float factor) {
-        return factor / 123;
+    //problem with CG tree to get the argument type
+//    public float compute2(float factor) {
+//        return factor / 123; //* CASE B
+//    }
+
+    //problem with CG tree to get the argument type
+//    public double compute3(double factor) {
+//        return factor / 123; //* CASE B
+//    }
+
+    public long compute4(){
+        return System.currentTimeMillis() * 10_000;
     }
 
-    public double compute3(double factor) {
-        return factor / 123;
+    public Double getDoubleValue(){
+        return 1D;
+    }
+
+    public void testBoxing(){
+        compute2(new Long(5*1000));
     }
 
 }

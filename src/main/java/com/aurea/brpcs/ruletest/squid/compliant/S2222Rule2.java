@@ -14,9 +14,7 @@ public class S2222Rule2 {
 		} catch (Throwable t) {
 			System.err.println("Error in doSomethingMethod");
 		} finally {
-			if (isInitialized()) { // compliant
-				lock.unlock();
-			}
+			lock.unlock();
 		}
 
 	}
