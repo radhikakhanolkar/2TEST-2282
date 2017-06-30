@@ -44,7 +44,7 @@ urlCG = 'http://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs?status=Comp
 println ">>> URL CODEGRAPH: " + urlCG
 println ">>> GMT:" + new Date().toGMTString()
 
-updateDatabase = false; //CHANGE HERE
+updateDatabase = true; //CHANGE HERE
 
 def cgClient = new RESTClient(urlCG)
 cgClient.getClient().params.setParameter("http.connection.timeout", 10000)

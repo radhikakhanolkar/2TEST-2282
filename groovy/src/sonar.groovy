@@ -55,32 +55,149 @@ class Violation {
 //        "MATCH (n:ThrowStatement)<-[:tree_edge*]-(:Block)<-[:finally]-(:TryStatement) " +
 //        "RETURN DISTINCT n.col AS col, n.line AS line, n.file AS file"
 
-queryS1444 = "MATCH (c)-[:tree_edge*]->(field:FieldDeclaration) " +
-        "WHERE field.modifiers CONTAINS ('static') " +
-        "AND field.modifiers CONTAINS ('public') " +
-        "AND NOT field.modifiers CONTAINS ('final') " +
-        "AND NOT c.entity_type = 'interface' " +
-        "WITH COLLECT(DISTINCT(field)) AS All " +
-        "OPTIONAL MATCH (field)<-[:member]-(:TypeDeclaration)-[:annotation]->(sma:SingleMemberAnnotation) " +
-        "WHERE sma.name = 'StaticMetamodel' " +
-        "WITH COLLECT(DISTINCT(field)) AS SmaClasses, All " +
-        "WITH FILTER(x IN All WHERE NOT x IN SmaClasses) AS FilteredResult " +
-        "UNWIND FilteredResult AS FinalResult " +
-        "MATCH(FinalResult)-[:fragment]->(vd:VariableDeclarationFragment) " +
-        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
+//queryS1444 = "MATCH (c)-[:tree_edge*]->(field:FieldDeclaration) " +
+//        "WHERE field.modifiers CONTAINS ('static') " +
+//        "AND field.modifiers CONTAINS ('public') " +
+//        "AND NOT field.modifiers CONTAINS ('final') " +
+//        "AND NOT c.entity_type = 'interface' " +
+//        "WITH COLLECT(DISTINCT(field)) AS All " +
+//        "OPTIONAL MATCH (field)<-[:member]-(:TypeDeclaration)-[:annotation]->(sma:SingleMemberAnnotation) " +
+//        "WHERE sma.name = 'StaticMetamodel' " +
+//        "WITH COLLECT(DISTINCT(field)) AS SmaClasses, All " +
+//        "WITH FILTER(x IN All WHERE NOT x IN SmaClasses) AS FilteredResult " +
+//        "UNWIND FilteredResult AS FinalResult " +
+//        "MATCH(FinalResult)-[:fragment]->(vd:VariableDeclarationFragment) " +
+//        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
+
+
+queryS2184 =
+            "// int/long to double/float cases\n" +
+            "//CASE A\n" +
+            "MATCH (s1:InfixExpression)<-[:tree_edge*0..]-(declaration)-[:type]->(varType)\n" +
+            "WHERE (s1.operator = '/' OR s1.operator = '*')\n" +
+            "AND (toLower(varType.name) = 'double' OR toLower(varType.name) = 'float')\n" +
+            "AND NOT (s1)<-[:tree_edge*]-(:MethodInvocation)\n" +
+            "WITH declaration AS i\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
+            "WHERE toLower(varType.name) = 'float' OR toLower(varType.name) = 'double'\n" +
+            "WITH i, varType\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
+            "WHERE toLower(varNumLiteral.name) CONTAINS ('f')\n" +
+            "OR toLower(varNumLiteral.name) CONTAINS ('d') \n" +
+            "OR varNumLiteral.name CONTAINS ('.')\n" +
+            "WITH i, varType, varNumLiteral\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
+            "WHERE toLower(varType3.name) = 'float' OR toLower(varType3.name) = 'double'\n" +
+            "WITH i, varType, varNumLiteral, varType3\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:MethodInvocation)-[:tree_edge]->(mName:SimpleName)\n" +
+            "WHERE mName.name = 'doubleValue' OR mName.name = 'floatValue' \n" +
+            "WITH i, varType, varNumLiteral, varType3, mName\n" +
+            "OPTIONAL MATCH (i:CastExpression)-[:type]->(varType4)\n" +
+            "WHERE toLower(varType4.name) = 'float' OR toLower(varType4.name) = 'double'\n" +
+            "WITH i, varType, varNumLiteral, varType3, mName, varType4\n" +
+            "WHERE varType IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND mName IS NULL AND varType4 IS NULL \n" +
+            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file\n" +
+            "\n" +
+            "UNION\n" +
+            "\n" +
+            "//methods with return type\n" +
+            "//CASE B\n" +
+            "MATCH (s2:InfixExpression)<-[:tree_edge*]-(:ReturnStatement)<-[:tree_edge*]-(:MethodDeclaration)-[:return]->(retVarType)\n" +
+            "MATCH (s2)-[:tree_edge]->(:SimpleName)<-[:USE_BY]-()-[:type]->(varType)\n" +
+            "WHERE (s2.operator = '/' OR s2.operator = '*') \n" +
+            "AND (toLower(varType.name) = 'long' OR toLower(varType.name) = 'int')\n" +
+            "AND (toLower(retVarType.name) = 'float' OR toLower(retVarType.name) = 'double')\n" +
+            "WITH s2 AS i\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
+            "WHERE toLower(varType.name) = 'float' OR toLower(varType.name) = 'double'\n" +
+            "WITH i, varType\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
+            "WHERE toLower(varNumLiteral.name) CONTAINS ('f')\n" +
+            "OR toLower(varNumLiteral.name) CONTAINS ('d') \n" +
+            "OR varNumLiteral.name CONTAINS ('.')\n" +
+            "WITH i, varType, varNumLiteral\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
+            "WHERE toLower(varType3.name) = 'float' OR toLower(varType3.name) = 'double'\n" +
+            "WITH i, varType, varNumLiteral, varType3\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(:MethodInvocation)-[:tree_edge]->(mName:SimpleName)\n" +
+            "WHERE mName.name = 'doubleValue' OR mName.name = 'floatValue' \n" +
+            "WITH i, varType, varNumLiteral, varType3, mName\n" +
+            "OPTIONAL MATCH (i:CastExpression)-[:type]->(varType4)\n" +
+            "WHERE toLower(varType4.name) = 'float' OR toLower(varType4.name) = 'double'\n" +
+            "WITH i, varType, varNumLiteral, varType3, mName, varType4\n" +
+            "WHERE varType IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND mName IS NULL AND varType4 IS NULL \n" +
+            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file\n" +
+            "\n" +
+            "//end int/long to double/float cases\n" +
+            "\n" +
+            "\n" +
+            "UNION\n" +
+            "\n" +
+            "// int to long cases\n" +
+            "//CASE C\n" +
+            "MATCH (s1:InfixExpression)<-[:tree_edge*0..]-(declaration)-[:type]->(varType)\n" +
+            "WHERE s1.operator = '*'\n" +
+            "AND toLower(varType.name) = 'long'\n" +
+            "AND NOT (declaration:CastExpression)\n" +
+            "AND NOT (s1)-[:tree_edge]->(:QualifiedName)\n" +
+            "WITH s1 as exp1, declaration AS i\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType2)\n" +
+            "WHERE toLower(varType2.name) = 'long'\n" +
+            "WITH exp1, i, varNumCast\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
+            "WHERE toLower(varNumLiteral.name) CONTAINS ('l')\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
+            "WHERE toLower(varType3.name) = 'long'\n" +
+            "WITH exp1, i, varNumCast, varNumLiteral, varType3\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:CastExpression)-[:type]->(varType4)\n" +
+            "WHERE toLower(varType4.name) = 'long'\n" +
+            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge]->(:MethodInvocation)-[:INVOKES]->(:MethodDeclaration)-[:return]-(varType5)\n" +
+            "WHERE toLower(varType5.name) = 'long'\n" +
+            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4, varType5\n" +
+            "OPTIONAL MATCH (i:ClassInstanceCreation)-[:type]->(classType:SimpleType)\n" +
+            "WHERE toLower(classType.name) = 'long' OR toLower(classType.name) = 'double'\n" +
+            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4, varType5, classType\n" +
+            "WHERE varNumCast IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND varType4 IS NULL AND varType5 IS NULL AND classType IS NULL\n" +
+            "RETURN DISTINCT exp1.col AS col, exp1.line AS line, exp1.file AS file\n" +
+            "\n" +
+            "\n" +
+            "UNION\n" +
+            "\n" +
+            "//CASE D\n" +
+            "MATCH (s2:InfixExpression)<-[:tree_edge*0..]-()-[:type]->(varType)\n" +
+            "MATCH (s2)-[:tree_edge]->(qName:QualifiedName)\n" +
+            "WHERE  (s2.operator = '+' OR s2.operator = '-')\n" +
+            "AND toLower(varType.name) = 'long'\n" +
+            "AND qName.name = 'Integer.MAX_VALUE' OR qName.name = 'Integer.MIN_VALUE'\n" +
+            "WITH s2 AS i\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
+            "WHERE toLower(varType.name) = 'long'\n" +
+            "WITH i, varNumCast\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge]->(varNumLiteral:NumberLiteral)\n" +
+            "WHERE varNumLiteral.name CONTAINS ('l') OR varNumLiteral.name CONTAINS ('L')\n" +
+            "OPTIONAL MATCH (i)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*]-()-[:type]->(varType3)\n" +
+            "WHERE toLower(varType3.name) = 'long'\n" +
+            "WITH i, varNumCast, varNumLiteral, varType3\n" +
+            "OPTIONAL MATCH (i)<-[:tree_edge*]-(:CastExpression)-[:type]->(varType4)\n" +
+            "WHERE toLower(varType4.name) = 'long'\n" +
+            "WITH i, varNumCast, varNumLiteral, varType3, varType4\n" +
+            "WHERE varNumCast IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND varType4 IS NULL  \n" +
+            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file"
+
 
 cgProjects = [
-        //'business-payment'           : '0ab819b1-f7e1-426b-b08a-674ce5282887',
-        //'versata-m1.ems'             : 'da43d583-dc4f-4727-accb-3e35f4a37f49',
-        'aurea-sonic-mq': '5beea8ba-c579-46f8-8c9e-c94124a4f12e' //,
-        //'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
-        //'ta-smartleads-lms-mct'      : '8275f759-6738-4c38-abb5-84dc8c0beaca',
-        //'aurea-aes-edi'              : '3b5d54e7-538c-422c-ba0f-b669466bb129',
-        //'pss'                        : 'e93e2376-8216-4473-bb93-1e8f12f4d3cd',
-        //'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
-        //'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
-        //'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
-        //'aurea-java-brp-cs-ruletest' : 'c7e14343-7fed-4f48-b35d-f3e90cadd224'
+        'business-payment'           : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
+        'versata-m1.ems'             : 'e494eb5f-5a45-4259-b2a7-714f16dbd6b1',
+        'aurea-sonic-mq'             : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
+        'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
+        'ta-smartleads-lms-mct'      : '223915ff-d7cc-4acc-9b23-6c238c77f39a',
+        'aurea-aes-edi'              : '7fc8e251-9fca-4861-b245-8ccde4580f67',
+        'pss'                        : 'aad7ba6b-8069-4aa3-8a36-38cc5c5e20d1',
+        'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
+        'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
+        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
+        'aurea-java-brp-cs-ruletest' : '6214fe83-68ab-49c1-9dda-3a34ccd18991'
 ]
 
 String componentRoots(Map cgProjects) {
@@ -95,15 +212,15 @@ fileLocal = "/Users/ajanoni/sonarcsv"
 
 sonarBaseUrl = "http://brp-sonar.ecs.devfactory.com"
 
-ruleId = "rules=squid%3AS1444" //CHANGE THE RULE NAME HERE
+ruleId = "rules=squid%3AS2184" //CHANGE THE RULE NAME HERE
 
 sonarUrl = sonarBaseUrl + "/api/issues/search?" + componentRoots(cgProjects) + "&" + ruleId
 
 sonarViolation = toViolationDTO(findViolations())
 
-cgViolation = getViolationFromCG(queryS1444) //CHANGE THE QUERY HERE
+cgViolation = getViolationFromCG(queryS2184) //CHANGE THE QUERY HERE
 
-exportToCsv("S1444", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
+exportToCsv("S2184", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
 
 Set<Violation> getViolationFromCG(String query) {
 
