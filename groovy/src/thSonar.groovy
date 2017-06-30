@@ -103,6 +103,7 @@ class ReportItem {
 enum NoSonarReason {
     TEST_CODE("Test code."),
     GENERATED_CODE("Generated code."),
+    EXCLUDED_CODE("Excluded code."),
     UNKNOWN_REASON("");
 
     String cause
@@ -238,11 +239,15 @@ static SonarIssue exactMatch(TestHarnessIssue thIssue, List<SonarIssue> keyMatch
 
 static NoSonarReason classify(TestHarnessIssue issue) {
     switch (issue.issueFile) {
-        case { String it -> StringUtils.contains(it, "/src/test/") }:
+        case { String it -> StringUtils.containsAny(it, "/src/test/", "runtime-testsuite/test/") }:
             return NoSonarReason.TEST_CODE
             break
         case { String it -> StringUtils.contains(it, "/src/gen/") }:
             return NoSonarReason.GENERATED_CODE
+            break
+        case { String it -> StringUtils.containsAny(it, "/src/main/jdk1.3/org/bouncycastle/",
+                "/src/main/j2me/org/bouncycastle/", "/src/main/jdk1.1/org/bouncycastle/", "/src/main/jdk1.4/org/bouncycastle/") }:
+            return NoSonarReason.EXCLUDED_CODE
             break
         default:
             return NoSonarReason.UNKNOWN_REASON
@@ -412,15 +417,16 @@ static void fillSummaryRow(HSSFSheet sheet, ProjectAnalysisResult result, int in
     createCell(row, 1, cellStyle).cellValue = result.withSonarMatch.size()
     withSheetLink(createCell(row, 2, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.TEST_CODE)
     withSheetLink(createCell(row, 3, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.GENERATED_CODE)
-    withSheetLink(createCell(row, 4, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.UNKNOWN_REASON)
-    withSheetLink(createCell(row, 5, cellStyle), sonarSheet).cellValue = result.withoutTestHarnessMatch.size()
-    (0..5).each { sheet.autoSizeColumn(it) }
+    withSheetLink(createCell(row, 4, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.EXCLUDED_CODE)
+    withSheetLink(createCell(row, 5, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.UNKNOWN_REASON)
+    withSheetLink(createCell(row, 6, cellStyle), sonarSheet).cellValue = result.withoutTestHarnessMatch.size()
+    (0..6).each { sheet.autoSizeColumn(it) }
 }
 
 static HSSFWorkbook generateXLSReport(List<ProjectAnalysisResult> analysisResults) {
     def workbook = new HSSFWorkbook()
     def summarySheet = workbook.createSheet("Summary")
-    createHeader(summarySheet, ["Project", "Match", "Not in Sonar [tests]", "Not in Sonar [generated]", "Not in Sonar", "Not in TH"])
+    createHeader(summarySheet, ["Project", "Match", "Not in Sonar [tests]", "Not in Sonar [generated]", "Not in Sonar [excluded]", "Not in Sonar", "Not in TH"])
     analysisResults.eachWithIndex { result, i ->
         List<ReportItem> reportItems = convert(result.withoutSonarMatch)
         def shortName = StringUtils.removeStart(result.thProject.projectName, "brp-java-test-")
@@ -440,15 +446,16 @@ static HSSFWorkbook generateXLSReport(List<ProjectAnalysisResult> analysisResult
 }
 
 static void printSummaryTable(List<ProjectAnalysisResult> resultList) {
-    def seperator = StringUtils.repeat("-", 122)
-    println(seperator)
-    printf("|%-40s|%15s|%15s|%15s|%15s|%15s|%n", "Project", "Match", "No Sonar(test)", "No Sonar(gen)", "No Sonar", "No TH")
-    println(seperator)
+    def separator = StringUtils.repeat("-", 138)
+    println(separator)
+    printf("|%-40s|%15s|%15s|%15s|%15s|%15s|%15s|%n", "Project", "Match", "No Sonar(test)", "No Sonar(gen)", "No Sonar(exc)", "No Sonar", "No TH")
+    println(separator)
     resultList.each {
-        printf("|%-40s|%15d|%15s|%15s|%15d|%15d|%n", it.thProject.projectName, it.withSonarMatch.size(),
+        printf("|%-40s|%15d|%15s|%15s|%15s|%15d|%15d|%n", it.thProject.projectName, it.withSonarMatch.size(),
                 count(it, NoSonarReason.TEST_CODE), count(it, NoSonarReason.GENERATED_CODE),
-                count(it, NoSonarReason.UNKNOWN_REASON), it.withoutTestHarnessMatch.size())
-        println(seperator)
+                count(it, NoSonarReason.EXCLUDED_CODE), count(it, NoSonarReason.UNKNOWN_REASON),
+                it.withoutTestHarnessMatch.size())
+        println(separator)
     }
 }
 
@@ -461,7 +468,8 @@ static void markTestHarnessAsPositive(List<Integer> issuesId) {
 static void performAnalyze(OptionAccessor options) {
     def jobId = options.j as Integer
     println("Analyze Test Harness Job ID: ${jobId}")
-    List<ProjectAnalysisResult> resultList = analyzeTestHarnessJob(jobId)
+    List<ProjectAnalysisResult> resultList = new ArrayList<>(analyzeTestHarnessJob(jobId))
+    resultList.sort new OrderBy<ProjectAnalysisResult>([{it.thProject.projectName}])
     printSummaryTable(resultList)
     def xlsFilename = "report_${jobId}.xls"
     println("Generating '${xlsFilename}'...")
@@ -480,6 +488,10 @@ static void performAnalyze(OptionAccessor options) {
         println("Marking generated as positive.")
         markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.GENERATED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
+    if (options.x || options.a) {
+        println("Marking excluded as positive.")
+        markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.EXCLUDED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
+    }
 }
 
 def cli = new CliBuilder(usage: "thSonar [options]", header: "Options:")
@@ -487,7 +499,8 @@ cli.j(longOpt: 'job-id', argName: 'jobId', required: true, args: 1, "Test Harnes
 cli.s(longOpt: 'update-db', "Update Test Harness database. Mark marching as positive.")
 cli.t(longOpt: 'update-db-test', "Update Test Harness database. Mark test as positive.")
 cli.g(longOpt: 'update-db-gen', "Update Test Harness database. Mark generated as positive.")
-cli.a(longOpt: 'update-db-all', "Update Test Harness database. Mark matching, test and generated as positive.")
+cli.x(longOpt: 'update-db-exc', "Update Test Harness database. Mark excluded as positive.")
+cli.a(longOpt: 'update-db-all', "Update Test Harness database. Mark matching, test, generated and excluded as positive.")
 
 def options = cli.parse(this.args)
 if (options && options.j && options.j.isInteger()) {
