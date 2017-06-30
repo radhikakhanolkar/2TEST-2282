@@ -4,11 +4,13 @@ import java.util.Date;
 
 public class S2133Rule {
 
-    Date date = new Date();
+    Date varDate = new Date();
 
     public void testGetClass() {
+        Date varDate2 = new Date();
         Class d = new Date().getClass();
-        Class c = date.getClass();
+        Class c = varDate.getClass();
+        Class e = varDate2.getClass();
     }
 
 }
