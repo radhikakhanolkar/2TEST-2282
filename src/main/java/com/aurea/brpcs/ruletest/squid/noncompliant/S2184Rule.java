@@ -11,15 +11,16 @@ public class S2184Rule {
     long millisInYear = 1_000 * 3_600 * 24 * 365; // CASE C - Noncompliant; int multiplication. Yields 1471228928
     long bigNum = Integer.MAX_VALUE + 2; // CASE D - Noncompliant. Yields -2147483647
     long bigNegNum = Integer.MIN_VALUE - 1; //CASE D - Noncompliant, gives a positive result instead of a negative one.
-    int intNum = 1000; //CASE F
-    long intNum2 = intNum + 2; //CASE F
-    long intNum3 = 2 + 2;  //CASE F
+    int intNum = 1000;
+    long intNum2 = intNum + 2; //CASE D
+    long intNum3 = 2 + 2;  //CASE D
+    long intNum4 = intNum + intNum;
 
     long seconds = 2147483;
     Date myDate = new Date(seconds * 1_000); //* Noncompliant, won't produce the expected result if seconds > 2_147_483_647
 
-    long testCast = 60*1000 + 1; //CASE C
-    long testCast2 = 60*1000 - 1; //CASE C
+    long testCast = 60*1000 + 1; //CASE D
+    long testCast2 = 60*1000 - 1; //CASE D
 
     public long compute(int factor) {
         return factor * 10_000;  //CASE E Noncompliant, won't produce the expected result if factor > 214_748
