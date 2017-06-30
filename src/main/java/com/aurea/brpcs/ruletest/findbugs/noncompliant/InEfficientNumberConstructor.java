@@ -13,4 +13,12 @@ public class InEfficientNumberConstructor {
         Integer numberInt = new Integer(126);
         Long numberLong = new Long(-127);
     }
+
+    public void testRule3() {
+
+        int numberIntPrim = 127;
+        Integer numberInt = new Integer(numberIntPrim);
+        long numberLongPrim = -128;
+        Long numberLong = new Long(numberLongPrim);
+    }
 }
