@@ -364,7 +364,7 @@ static void fillCodeGraphOnlySheet(HSSFSheet sheet, TestHarnessProject project, 
 }
 
 static void fillSonarOnlySheet(HSSFSheet sheet, List<SonarIssue> reportItems) {
-    createHeader(sheet, ["Component", "File"])
+    createHeader(sheet, ["Component", "File", "Cause"])
     def dataCellStyle = createDataStyle(sheet.workbook)
     List<SonarIssue> toSort = new ArrayList<>(reportItems)
     toSort.sort new OrderBy<SonarIssue>([{it.component}, {it.line}])
@@ -372,9 +372,10 @@ static void fillSonarOnlySheet(HSSFSheet sheet, List<SonarIssue> reportItems) {
         def row = sheet.createRow(i + 1)
         withHyperLink(row.createCell(0), createUrlHyperLink(sheet, "http://brp-sonar.ecs.devfactory.com/issues/search#issues=" + entry.key))
             .cellValue = entry.component
-        createCell(row, 1, dataCellStyle).setCellValue(entry.line)
+        createCell(row, 1, dataCellStyle).cellValue = entry.line
+        createCell(row, 2, dataCellStyle).cellValue = ""
     }
-    (0..1).each { sheet.autoSizeColumn(it) }
+    (0..2).each { sheet.autoSizeColumn(it) }
 }
 
 static Hyperlink createUrlHyperLink(HSSFSheet sheet, String address) {
