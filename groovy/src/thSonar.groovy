@@ -468,15 +468,15 @@ static void performAnalyze(OptionAccessor options) {
     new FileOutputStream(xlsFilename).withCloseable {
         generateXLSReport(resultList).write(it)
     }
-    if (options.s) {
+    if (options.s || options.a) {
         println("Marking matching as positive.")
         markTestHarnessAsPositive(resultList.collect { it.withSonarMatch }.flatten().collect { it.issueId })
     }
-    if (options.t) {
+    if (options.t || options.a) {
         println("Marking test as positive.")
         markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.TEST_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
-    if (options.g) {
+    if (options.g || options.a) {
         println("Marking generated as positive.")
         markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.GENERATED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
@@ -487,6 +487,7 @@ cli.j(longOpt: 'job-id', argName: 'jobId', required: true, args: 1, "Test Harnes
 cli.s(longOpt: 'update-db', "Update Test Harness database. Mark marching as positive.")
 cli.t(longOpt: 'update-db-test', "Update Test Harness database. Mark test as positive.")
 cli.g(longOpt: 'update-db-gen', "Update Test Harness database. Mark generated as positive.")
+cli.a(longOpt: 'update-db-all', "Update Test Harness database. Mark matching, test and generated as positive.")
 
 def options = cli.parse(this.args)
 if (options && options.j && options.j.isInteger()) {
