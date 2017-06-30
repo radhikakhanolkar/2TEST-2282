@@ -239,15 +239,16 @@ static SonarIssue exactMatch(TestHarnessIssue thIssue, List<SonarIssue> keyMatch
 
 static NoSonarReason classify(TestHarnessIssue issue) {
     switch (issue.issueFile) {
+        case { String it -> StringUtils.containsAny(it, "/src/main/jdk1.3/org/bouncycastle/",
+                "/src/main/j2me/org/bouncycastle/", "/src/main/jdk1.1/org/bouncycastle/", "/src/main/jdk1.4/org/bouncycastle/",
+                "testutils/ptest2/src/") }:
+            return NoSonarReason.EXCLUDED_CODE
+            break
         case { String it -> StringUtils.containsAny(it, "/src/test/", "runtime-testsuite/test/") }:
             return NoSonarReason.TEST_CODE
             break
         case { String it -> StringUtils.contains(it, "/src/gen/") }:
             return NoSonarReason.GENERATED_CODE
-            break
-        case { String it -> StringUtils.containsAny(it, "/src/main/jdk1.3/org/bouncycastle/",
-                "/src/main/j2me/org/bouncycastle/", "/src/main/jdk1.1/org/bouncycastle/", "/src/main/jdk1.4/org/bouncycastle/") }:
-            return NoSonarReason.EXCLUDED_CODE
             break
         default:
             return NoSonarReason.UNKNOWN_REASON
