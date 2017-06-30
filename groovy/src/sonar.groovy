@@ -72,7 +72,7 @@ queryS1444 = "MATCH (c)-[:tree_edge*]->(field:FieldDeclaration) " +
 cgProjects = [
         //'business-payment'           : '0ab819b1-f7e1-426b-b08a-674ce5282887',
         //'versata-m1.ems'             : 'da43d583-dc4f-4727-accb-3e35f4a37f49',
-         'aurea-sonic-mq': '5beea8ba-c579-46f8-8c9e-c94124a4f12e' //,
+        'aurea-sonic-mq': '5beea8ba-c579-46f8-8c9e-c94124a4f12e' //,
         //'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
         //'ta-smartleads-lms-mct'      : '8275f759-6738-4c38-abb5-84dc8c0beaca',
         //'aurea-aes-edi'              : '3b5d54e7-538c-422c-ba0f-b669466bb129',
@@ -160,7 +160,8 @@ Map<String, Map<String, List<String[]>>> findViolations() throws JSONException {
 
     WebResource webResource = client.resource(sonarUrl)
             .queryParam("ps", String.valueOf(100))
-            .queryParam("p", "1");
+            .queryParam("p", "1")
+            .queryParam("statuses", "OPEN,REOPENED");
     ClientResponse response =
             webResource.accept("application/json").type("application/json").get(ClientResponse
                     .class);
@@ -358,7 +359,7 @@ void exportToCsv(String ruleName, Set<Violation> sonarViolation, Set<Violation> 
     def countCg = cgViolation.countBy { it.file }
     def countSonar = sonarViolation.countBy { it.file }
 
-    countCg.intersect(countSonar).each{
+    countCg.intersect(countSonar).each {
         countCg.remove(it.key);
         countSonar.remove(it.key)
     }
