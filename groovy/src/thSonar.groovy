@@ -73,6 +73,7 @@ class TestHarnessIssue {
 class TestHarnessProject {
     String projectName
     String normalizedProjectName
+    String repositoryUrl
 }
 
 @ToString
@@ -114,7 +115,7 @@ enum NoSonarReason {
 
 @Immutable
 class ProjectAnalysisResult {
-    String projectName
+    TestHarnessProject thProject
     List<TestHarnessIssue> withSonarMatch
     Map<NoSonarReason, List<TestHarnessIssue>> withoutSonarMatch
     List<SonarIssue> withoutTestHarnessMatch
@@ -177,10 +178,12 @@ static JobDetails loadTestHarnessIssues(Integer jobId) {
                                                   ruleName: normalizedRuleName(row.ruleName),
                                                   projectName: row.projectName,
                                                   normalizedProjectName: testHarnessToSonarProject[row.projectName]])}
-    Set<TestHarnessProject> jobProjects = sql.rows("SELECT p.Name AS projectName FROM projecttoanalysisjob a " +
-            "JOIN projects p ON a.Project_Id = p.Id WHERE a.AnalysisJob_Id = ?", [jobId]).collect { row ->
+    Set<TestHarnessProject> jobProjects = sql.rows("SELECT p.Name AS projectName, c.RepoUrl AS repositoryUrl FROM projecttoanalysisjob a " +
+            "JOIN projects p ON a.Project_Id = p.Id JOIN codebases c ON a.Project_Id = c.ProjectId " +
+            "WHERE a.AnalysisJob_Id = ?", [jobId]).collect { row ->
         new TestHarnessProject([projectName: row.projectName,
-                                normalizedProjectName: testHarnessToSonarProject[row.projectName]])
+                                normalizedProjectName: testHarnessToSonarProject[row.projectName],
+                                repositoryUrl: row.repositoryUrl])
     }
     Set<String> jobRules = sql.rows("SELECT r.Name AS ruleName FROM neo4jruletoanalysisjob a " +
             "JOIN neo4jrules r ON a.Neo4JRule_id = r.Id WHERE a.AnalysisJob_Id = ?", [jobId]).collect {
@@ -286,7 +289,7 @@ static List<ProjectAnalysisResult> analyzeTestHarnessJob(int jobId) {
     }
 
     return jobDetails.jobProjects.collect { jobProject ->
-        new ProjectAnalysisResult([projectName: jobProject.projectName,
+        new ProjectAnalysisResult([thProject: jobProject,
                                    withSonarMatch: withSonarMatchByProject.get(jobProject.normalizedProjectName, Collections.emptyList()),
                                    withoutSonarMatch: classifiedNoSonar.get(jobProject.normalizedProjectName, Collections.emptyMap()),
                                    withoutTestHarnessMatch: withoutTestHarnessMatchByProject.get(jobProject.normalizedProjectName, Collections.emptyList()),
@@ -338,42 +341,40 @@ static void createHeader(HSSFSheet sheet, List<String> headers) {
     }
 }
 
-static void fillCodeGraphOnlySheet(HSSFSheet sheet, List<ReportItem> reportItems) {
+static void fillCodeGraphOnlySheet(HSSFSheet sheet, TestHarnessProject project, List<ReportItem> reportItems) {
     createHeader(sheet, ["File", "Line", "Column", "Cause"])
     def dataCellSyle = createDataStyle(sheet.workbook)
     List<ReportItem> toSort = new ArrayList<>(reportItems)
     toSort.sort new OrderBy<ReportItem>([{it.file}, {it.line}])
     toSort.eachWithIndex{ ReportItem entry, int i ->
         def row = sheet.createRow(i + 1)
-        createCell(row, 0, dataCellSyle).setCellValue(entry.file)
-        createCell(row, 1, dataCellSyle).setCellValue(entry.line)
-        createCell(row, 2, dataCellSyle).setCellValue(entry.column)
-        createCell(row, 3, dataCellSyle).setCellValue(entry.cause)
+        withHyperLink(row.createCell(0), createUrlHyperLink(sheet, project.repositoryUrl + "/" + entry.file + "#L" + entry.line))
+            .cellValue = entry.file
+        createCell(row, 1, dataCellSyle).cellValue = entry.line
+        createCell(row, 2, dataCellSyle).cellValue = entry.column
+        createCell(row, 3, dataCellSyle).cellValue = entry.cause
     }
     (0..3).each { sheet.autoSizeColumn(it) }
 }
 
 static void fillSonarOnlySheet(HSSFSheet sheet, List<SonarIssue> reportItems) {
     createHeader(sheet, ["Component", "File"])
-    def workbook = sheet.workbook
-    def dataCellSyle = createDataStyle(sheet.workbook)
-    def hyperLinkStyle = createDataStyle(sheet.workbook)
-    def hyperLinkFont = workbook.createFont()
-    hyperLinkFont.underline = Font.U_SINGLE
-    hyperLinkFont.color = IndexedColors.BLACK.getIndex()
-    hyperLinkStyle.font = hyperLinkFont
+    def dataCellStyle = createDataStyle(sheet.workbook)
     List<SonarIssue> toSort = new ArrayList<>(reportItems)
     toSort.sort new OrderBy<SonarIssue>([{it.component}, {it.line}])
     toSort.eachWithIndex{ SonarIssue entry, int i ->
         def row = sheet.createRow(i + 1)
-        Hyperlink componentLink = workbook.creationHelper.createHyperlink(HyperlinkType.URL)
-        componentLink.setAddress("http://brp-sonar.ecs.devfactory.com/issues/search#issues=" + entry.key)
-        def componentCell = createCell(row, 0, hyperLinkStyle)
-        componentCell.setCellValue(entry.component)
-        componentCell.setHyperlink(componentLink)
-        createCell(row, 1, dataCellSyle).setCellValue(entry.line)
+        withHyperLink(row.createCell(0), createUrlHyperLink(sheet, "http://brp-sonar.ecs.devfactory.com/issues/search#issues=" + entry.key))
+            .cellValue = entry.component
+        createCell(row, 1, dataCellStyle).setCellValue(entry.line)
     }
     (0..1).each { sheet.autoSizeColumn(it) }
+}
+
+static Hyperlink createUrlHyperLink(HSSFSheet sheet, String address) {
+    Hyperlink hyperLink = sheet.workbook.creationHelper.createHyperlink(HyperlinkType.URL)
+    hyperLink.setAddress(address)
+    return hyperLink
 }
 
 static Hyperlink createSheetHyperLink(HSSFSheet sheet, String sheetName) {
@@ -382,9 +383,20 @@ static Hyperlink createSheetHyperLink(HSSFSheet sheet, String sheetName) {
     return hyperLink
 }
 
+static HSSFCell withHyperLink(HSSFCell cell, Hyperlink hyperlink) {
+    def hyperLinkStyle = createDataStyle(cell.sheet.workbook)
+    def hyperLinkFont = cell.sheet.workbook.createFont()
+    hyperLinkFont.underline = Font.U_SINGLE
+    hyperLinkFont.color = IndexedColors.BLACK.getIndex()
+    hyperLinkStyle.font = hyperLinkFont
+    cell.cellStyle = hyperLinkStyle
+    cell.hyperlink = hyperlink
+    return cell
+}
+
 static HSSFCell withSheetLink(HSSFCell cell, String sheetName) {
     if (StringUtils.isNotBlank(sheetName)) {
-        cell.setHyperlink(createSheetHyperLink(cell.sheet, sheetName))
+        return withHyperLink(cell, createSheetHyperLink(cell.sheet, sheetName))
     }
     return cell
 }
@@ -396,7 +408,7 @@ static int count(ProjectAnalysisResult result, NoSonarReason noSonarReason) {
 static void fillSummaryRow(HSSFSheet sheet, ProjectAnalysisResult result, int index, String cgSheet, String sonarSheet) {
     def cellStyle = createDataStyle(sheet.workbook)
     def row = sheet.createRow(index)
-    createCell(row, 0, cellStyle).cellValue = result.projectName
+    createCell(row, 0, cellStyle).cellValue = result.thProject.projectName
     createCell(row, 1, cellStyle).cellValue = result.withSonarMatch.size()
     withSheetLink(createCell(row, 2, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.TEST_CODE)
     withSheetLink(createCell(row, 3, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.GENERATED_CODE)
@@ -411,15 +423,15 @@ static HSSFWorkbook generateXLSReport(List<ProjectAnalysisResult> analysisResult
     createHeader(summarySheet, ["Project", "Match", "Not in Sonar [tests]", "Not in Sonar [generated]", "Not in Sonar", "Not in TH"])
     analysisResults.eachWithIndex { result, i ->
         List<ReportItem> reportItems = convert(result.withoutSonarMatch)
-        def shortName = StringUtils.removeStart(result.projectName, "brp-java-test-")
+        def shortName = StringUtils.removeStart(result.thProject.projectName, "brp-java-test-")
         def codeGraphSheet = ""
         def sonarSheet = ""
         if (!reportItems.isEmpty()) {
-            codeGraphSheet = "${shortName}_cg"
-            fillCodeGraphOnlySheet(workbook.createSheet(codeGraphSheet), reportItems)
+            codeGraphSheet = StringUtils.abbreviate("cg_${shortName}", 30)
+            fillCodeGraphOnlySheet(workbook.createSheet(codeGraphSheet), result.thProject, reportItems)
         }
         if (!result.withoutTestHarnessMatch.isEmpty()) {
-            sonarSheet = "${shortName}_sonar"
+            sonarSheet = StringUtils.abbreviate("sonar_${shortName}", 30)
             fillSonarOnlySheet(workbook.createSheet(sonarSheet), result.withoutTestHarnessMatch)
         }
         fillSummaryRow(summarySheet, result, i + 1, codeGraphSheet, sonarSheet)
@@ -433,7 +445,7 @@ static void printSummaryTable(List<ProjectAnalysisResult> resultList) {
     printf("|%-40s|%15s|%15s|%15s|%15s|%15s|%n", "Project", "Match", "No Sonar(test)", "No Sonar(gen)", "No Sonar", "No TH")
     println(seperator)
     resultList.each {
-        printf("|%-40s|%15d|%15s|%15s|%15d|%15d|%n", it.projectName, it.withSonarMatch.size(),
+        printf("|%-40s|%15d|%15s|%15s|%15d|%15d|%n", it.thProject.projectName, it.withSonarMatch.size(),
                 count(it, NoSonarReason.TEST_CODE), count(it, NoSonarReason.GENERATED_CODE),
                 count(it, NoSonarReason.UNKNOWN_REASON), it.withoutTestHarnessMatch.size())
         println(seperator)
