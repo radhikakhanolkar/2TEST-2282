@@ -250,7 +250,9 @@ static NoSonarReason classify(TestHarnessIssue issue) {
                 "testutils/ptest2/src/") }:
             return NoSonarReason.EXCLUDED_CODE
             break
-        case { String it -> StringUtils.containsAny(it, "/src/test/", "runtime-testsuite/test/") }:
+        case { String it -> StringUtils.containsAny(it, "/src/test/", "runtime-testsuite/test/",
+                "testing/wicket-threadtest/src/", "tool-testsuite/test/org/antlr/v4/test/tool/TestPerformance.java",
+                "exttst/org/eclipse/jgit/") }:
             return NoSonarReason.TEST_CODE
             break
         case { String it -> StringUtils.contains(it, "/src/gen/") }:
