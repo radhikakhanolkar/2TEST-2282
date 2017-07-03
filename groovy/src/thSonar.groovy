@@ -115,6 +115,12 @@ enum NoSonarReason {
 }
 
 @Immutable
+class AnalysisResult {
+    JobDetails jobDetails
+    List<ProjectAnalysisResult> resultList
+}
+
+@Immutable
 class ProjectAnalysisResult {
     TestHarnessProject thProject
     List<TestHarnessIssue> withSonarMatch
@@ -256,7 +262,7 @@ static NoSonarReason classify(TestHarnessIssue issue) {
     }
 }
 
-static List<ProjectAnalysisResult> analyzeTestHarnessJob(int jobId) {
+static AnalysisResult analyzeTestHarnessJob(int jobId) {
     println("Query Test Harness job results.")
     JobDetails jobDetails = loadTestHarnessIssues(jobId)
     Set<String> unknownProjects = findUnknownProjects(jobDetails)
@@ -294,13 +300,15 @@ static List<ProjectAnalysisResult> analyzeTestHarnessJob(int jobId) {
                 classifiedNoSonar.put(key, value.groupBy { classify(it) })
     }
 
-    return jobDetails.jobProjects.collect { jobProject ->
+    List<ProjectAnalysisResult> resultList = new ArrayList<>(jobDetails.jobProjects.collect { jobProject ->
         new ProjectAnalysisResult([thProject: jobProject,
                                    withSonarMatch: withSonarMatchByProject.get(jobProject.normalizedProjectName, Collections.emptyList()),
                                    withoutSonarMatch: classifiedNoSonar.get(jobProject.normalizedProjectName, Collections.emptyMap()),
                                    withoutTestHarnessMatch: withoutTestHarnessMatchByProject.get(jobProject.normalizedProjectName, Collections.emptyList()),
-        ])
-    }
+        ])})
+    resultList.sort new OrderBy<ProjectAnalysisResult>([{it.thProject.projectName}])
+
+    return new AnalysisResult(jobDetails, resultList)
 }
 
 
@@ -412,10 +420,13 @@ static int count(ProjectAnalysisResult result, NoSonarReason noSonarReason) {
     return result.withoutSonarMatch.getOrDefault(noSonarReason, Collections.emptyList()).size()
 }
 
-static void fillSummaryRow(HSSFSheet sheet, ProjectAnalysisResult result, int index, String cgSheet, String sonarSheet) {
+static void fillSummaryRow(HSSFSheet sheet, JobDetails jobDetails,
+                           ProjectAnalysisResult result, int index, String cgSheet, String sonarSheet) {
     def cellStyle = createDataStyle(sheet.workbook)
     def row = sheet.createRow(index)
-    createCell(row, 0, cellStyle).cellValue = result.thProject.projectName
+    withHyperLink(row.createCell(0), createUrlHyperLink(sheet,
+            "http://brp-sonar.ecs.devfactory.com/component_issues?id=${result.thProject.normalizedProjectName}" +
+                    "#rules=" + jobDetails.jobRules.join(","))).cellValue = result.thProject.projectName
     createCell(row, 1, cellStyle).cellValue = result.withSonarMatch.size()
     withSheetLink(createCell(row, 2, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.TEST_CODE)
     withSheetLink(createCell(row, 3, cellStyle), cgSheet).cellValue = count(result, NoSonarReason.GENERATED_CODE)
@@ -425,11 +436,11 @@ static void fillSummaryRow(HSSFSheet sheet, ProjectAnalysisResult result, int in
     (0..6).each { sheet.autoSizeColumn(it) }
 }
 
-static HSSFWorkbook generateXLSReport(List<ProjectAnalysisResult> analysisResults) {
+static HSSFWorkbook generateXLSReport(AnalysisResult analysisResults) {
     def workbook = new HSSFWorkbook()
     def summarySheet = workbook.createSheet("Summary")
     createHeader(summarySheet, ["Project", "Match", "Not in Sonar [tests]", "Not in Sonar [generated]", "Not in Sonar [excluded]", "Not in Sonar", "Not in TH"])
-    analysisResults.eachWithIndex { result, i ->
+    analysisResults.resultList.eachWithIndex { result, i ->
         List<ReportItem> reportItems = convert(result.withoutSonarMatch)
         def shortName = StringUtils.removeStart(result.thProject.projectName, "brp-java-test-")
         def codeGraphSheet = ""
@@ -442,7 +453,7 @@ static HSSFWorkbook generateXLSReport(List<ProjectAnalysisResult> analysisResult
             sonarSheet = StringUtils.abbreviate("sonar_${shortName}", 30)
             fillSonarOnlySheet(workbook.createSheet(sonarSheet), result.withoutTestHarnessMatch)
         }
-        fillSummaryRow(summarySheet, result, i + 1, codeGraphSheet, sonarSheet)
+        fillSummaryRow(summarySheet, analysisResults.jobDetails, result, i + 1, codeGraphSheet, sonarSheet)
     }
     return workbook
 }
@@ -470,29 +481,28 @@ static void markTestHarnessAsPositive(List<Integer> issuesId) {
 static void performAnalyze(OptionAccessor options) {
     def jobId = options.j as Integer
     println("Analyze Test Harness Job ID: ${jobId}")
-    List<ProjectAnalysisResult> resultList = new ArrayList<>(analyzeTestHarnessJob(jobId))
-    resultList.sort new OrderBy<ProjectAnalysisResult>([{it.thProject.projectName}])
-    printSummaryTable(resultList)
+    AnalysisResult analysisResult = analyzeTestHarnessJob(jobId)
+    printSummaryTable(analysisResult.resultList)
     def xlsFilename = "report_${jobId}.xls"
     println("Generating '${xlsFilename}'...")
     new FileOutputStream(xlsFilename).withCloseable {
-        generateXLSReport(resultList).write(it)
+        generateXLSReport(analysisResult).write(it)
     }
     if (options.s || options.a) {
         println("Marking matching as positive.")
-        markTestHarnessAsPositive(resultList.collect { it.withSonarMatch }.flatten().collect { it.issueId })
+        markTestHarnessAsPositive(analysisResult.resultList.collect { it.withSonarMatch }.flatten().collect { it.issueId })
     }
     if (options.t || options.a) {
         println("Marking test as positive.")
-        markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.TEST_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
+        markTestHarnessAsPositive(analysisResult.resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.TEST_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
     if (options.g || options.a) {
         println("Marking generated as positive.")
-        markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.GENERATED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
+        markTestHarnessAsPositive(analysisResult.resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.GENERATED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
     if (options.x || options.a) {
         println("Marking excluded as positive.")
-        markTestHarnessAsPositive(resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.EXCLUDED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
+        markTestHarnessAsPositive(analysisResult.resultList.collect { it.withoutSonarMatch.getOrDefault(NoSonarReason.EXCLUDED_CODE, Collections.emptyList()) }.flatten().collect { it.issueId })
     }
 }
 
