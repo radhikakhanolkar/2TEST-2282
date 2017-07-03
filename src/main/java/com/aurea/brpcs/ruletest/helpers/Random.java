@@ -1,6 +1,6 @@
-package com.aurea.brpcs.ruletest.helpers.findbugs;
+package com.aurea.brpcs.ruletest.helpers;
 
-public final class Random {
+public class Random {
 
     private final int value;
 
