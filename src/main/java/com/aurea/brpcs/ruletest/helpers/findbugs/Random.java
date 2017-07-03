@@ -1,4 +1,4 @@
-package com.aurea.brpcs.ruletest.helpers.squid;
+package com.aurea.brpcs.ruletest.helpers.findbugs;
 
 public final class Random {
 

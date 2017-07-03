@@ -1,6 +1,6 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
-import com.aurea.brpcs.ruletest.helpers.squid.Random;
+import com.aurea.brpcs.ruletest.helpers.findbugs.Random;
 
 public class S2245Rule {
 
