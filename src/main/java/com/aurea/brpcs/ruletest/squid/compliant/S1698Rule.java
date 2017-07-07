@@ -2,44 +2,6 @@ package com.aurea.brpcs.ruletest.squid.compliant;
 
 public class S1698Rule {
 
-    public static class WithAnnotation {
-        @Override
-        public boolean equals(Object obj) {
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return 0;
-        }
-
-        public void test(WithAnnotation w1) {
-            if (this.equals(w1)) {
-            }
-        }
-    }
-
-    public static class WithOutAnnotation {
-
-        public boolean equals(Object obj) {
-            return false;
-        }
-
-        public int hashCode() {
-            return 0;
-        }
-    }
-
-    public static class WithOutAnnotationChild extends S1698Rule
-            .WithOutAnnotation {
-
-    }
-
-    public static class WithOutAnnotationGrandChild extends S1698Rule
-            .WithOutAnnotationChild {
-
-    }
-
     public void test() {
 
         String test = "test";
@@ -68,5 +30,41 @@ public class S1698Rule {
         WithOutAnnotationGrandChild wgc2 = new WithOutAnnotationGrandChild();
         if (!wc1.equals(wc2)) {
         }
+    }
+
+    public static class WithAnnotation {
+        @Override
+        public boolean equals(Object obj) {
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public void test(WithAnnotation w1) {
+            if (this.equals(w1)) {
+            }
+        }
+    }
+
+    public static class WithOutAnnotation {
+
+        public boolean equals(Object obj) {
+            return false;
+        }
+
+        public int hashCode() {
+            return 0;
+        }
+    }
+
+    public static class WithOutAnnotationChild extends WithOutAnnotation {
+
+    }
+
+    public static class WithOutAnnotationGrandChild extends WithOutAnnotationChild {
+
     }
 }
