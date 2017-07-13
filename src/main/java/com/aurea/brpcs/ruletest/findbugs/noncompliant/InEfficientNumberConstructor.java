@@ -15,17 +15,26 @@ public class InEfficientNumberConstructor {
     }
 
     public void testRule3() {
-        int numberIntPrim = 127;
-        Integer numberInt = Integer.valueOf(numberIntPrim);
-        long numberLongPrim = -128;
-        Long numberLong = Long.valueOf(numberLongPrim);
-    }
-
-    public void testRule4() {
         int numberIntPrim = 128;
         Integer numberInt = new Integer(numberIntPrim);
         long numberLongPrim = -129;
         Long numberLong = new Long(numberLongPrim);
+    }
+
+    public Integer testRule4() {
+        return new Integer(0);
+    }
+
+    public String testRule5(int myInt) {
+        return new Integer(myInt).toString();
+    }
+
+    public int testRule6(String myString) {
+        return new Integer(myString).intValue();
+    }
+
+    public Integer testRule7(String myString) {
+        return new Integer(myString);
     }
 
 }
