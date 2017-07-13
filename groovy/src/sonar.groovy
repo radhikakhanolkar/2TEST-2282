@@ -31,6 +31,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 @EqualsAndHashCode(excludes = 'col')
@@ -70,140 +71,61 @@ class Violation {
 //        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
 
 
-queryS2184 =
-            "// int/long to double/float cases\n" +
-            "//CASE A\n" +
-            "MATCH (s1:InfixExpression)<-[:tree_edge*0..]-(declaration)-[:type]->(varType)\n" +
-            "WHERE (s1.operator = '/' OR s1.operator = '*')\n" +
-            "AND (toLower(varType.name) = 'double' OR toLower(varType.name) = 'float')\n" +
-            "AND NOT (s1)<-[:tree_edge*]-(:MethodInvocation)\n" +
-            "WITH declaration AS i\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
-            "WHERE toLower(varType.name) = 'float' OR toLower(varType.name) = 'double'\n" +
-            "WITH i, varType\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
-            "WHERE toLower(varNumLiteral.name) CONTAINS ('f')\n" +
-            "OR toLower(varNumLiteral.name) CONTAINS ('d') \n" +
-            "OR varNumLiteral.name CONTAINS ('.')\n" +
-            "WITH i, varType, varNumLiteral\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
-            "WHERE toLower(varType3.name) = 'float' OR toLower(varType3.name) = 'double'\n" +
-            "WITH i, varType, varNumLiteral, varType3\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:MethodInvocation)-[:tree_edge]->(mName:SimpleName)\n" +
-            "WHERE mName.name = 'doubleValue' OR mName.name = 'floatValue' \n" +
-            "WITH i, varType, varNumLiteral, varType3, mName\n" +
-            "OPTIONAL MATCH (i:CastExpression)-[:type]->(varType4)\n" +
-            "WHERE toLower(varType4.name) = 'float' OR toLower(varType4.name) = 'double'\n" +
-            "WITH i, varType, varNumLiteral, varType3, mName, varType4\n" +
-            "WHERE varType IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND mName IS NULL AND varType4 IS NULL \n" +
-            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file\n" +
-            "\n" +
-            "UNION\n" +
-            "\n" +
-            "//methods with return type\n" +
-            "//CASE B\n" +
-            "MATCH (s2:InfixExpression)<-[:tree_edge*]-(:ReturnStatement)<-[:tree_edge*]-(:MethodDeclaration)-[:return]->(retVarType)\n" +
-            "MATCH (s2)-[:tree_edge]->(:SimpleName)<-[:USE_BY]-()-[:type]->(varType)\n" +
-            "WHERE (s2.operator = '/' OR s2.operator = '*') \n" +
-            "AND (toLower(varType.name) = 'long' OR toLower(varType.name) = 'int')\n" +
-            "AND (toLower(retVarType.name) = 'float' OR toLower(retVarType.name) = 'double')\n" +
-            "WITH s2 AS i\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
-            "WHERE toLower(varType.name) = 'float' OR toLower(varType.name) = 'double'\n" +
-            "WITH i, varType\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
-            "WHERE toLower(varNumLiteral.name) CONTAINS ('f')\n" +
-            "OR toLower(varNumLiteral.name) CONTAINS ('d') \n" +
-            "OR varNumLiteral.name CONTAINS ('.')\n" +
-            "WITH i, varType, varNumLiteral\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
-            "WHERE toLower(varType3.name) = 'float' OR toLower(varType3.name) = 'double'\n" +
-            "WITH i, varType, varNumLiteral, varType3\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*0..]->(:InfixExpression)-[:tree_edge*]->(:MethodInvocation)-[:tree_edge]->(mName:SimpleName)\n" +
-            "WHERE mName.name = 'doubleValue' OR mName.name = 'floatValue' \n" +
-            "WITH i, varType, varNumLiteral, varType3, mName\n" +
-            "OPTIONAL MATCH (i:CastExpression)-[:type]->(varType4)\n" +
-            "WHERE toLower(varType4.name) = 'float' OR toLower(varType4.name) = 'double'\n" +
-            "WITH i, varType, varNumLiteral, varType3, mName, varType4\n" +
-            "WHERE varType IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND mName IS NULL AND varType4 IS NULL \n" +
-            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file\n" +
-            "\n" +
-            "//end int/long to double/float cases\n" +
-            "\n" +
-            "\n" +
-            "UNION\n" +
-            "\n" +
-            "// int to long cases\n" +
-            "//CASE C\n" +
-            "MATCH (s1:InfixExpression)<-[:tree_edge*0..]-(declaration)-[:type]->(varType)\n" +
-            "WHERE s1.operator = '*'\n" +
-            "AND toLower(varType.name) = 'long'\n" +
-            "AND NOT (declaration:CastExpression)\n" +
-            "AND NOT (s1)-[:tree_edge]->(:QualifiedName)\n" +
-            "WITH s1 as exp1, declaration AS i\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(varNumCast:CastExpression)-[:type]->(varType2)\n" +
-            "WHERE toLower(varType2.name) = 'long'\n" +
-            "WITH exp1, i, varNumCast\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(varNumLiteral:NumberLiteral)\n" +
-            "WHERE toLower(varNumLiteral.name) CONTAINS ('l')\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*0..]-()-[:type]->(varType3)\n" +
-            "WHERE toLower(varType3.name) = 'long'\n" +
-            "WITH exp1, i, varNumCast, varNumLiteral, varType3\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge*]->(:CastExpression)-[:type]->(varType4)\n" +
-            "WHERE toLower(varType4.name) = 'long'\n" +
-            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:InfixExpression)-[:tree_edge]->(:MethodInvocation)-[:INVOKES]->(:MethodDeclaration)-[:return]-(varType5)\n" +
-            "WHERE toLower(varType5.name) = 'long'\n" +
-            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4, varType5\n" +
-            "OPTIONAL MATCH (i:ClassInstanceCreation)-[:type]->(classType:SimpleType)\n" +
-            "WHERE toLower(classType.name) = 'long' OR toLower(classType.name) = 'double'\n" +
-            "WITH exp1, i, varNumCast, varNumLiteral, varType3, varType4, varType5, classType\n" +
-            "WHERE varNumCast IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND varType4 IS NULL AND varType5 IS NULL AND classType IS NULL\n" +
-            "RETURN DISTINCT exp1.col AS col, exp1.line AS line, exp1.file AS file\n" +
-            "\n" +
-            "\n" +
-            "UNION\n" +
-            "\n" +
-            "//CASE D\n" +
-            "MATCH (s2:InfixExpression)<-[:tree_edge*0..]-()-[:type]->(varType)\n" +
-            "MATCH (s2)-[:tree_edge]->(qName:QualifiedName)\n" +
-            "WHERE  (s2.operator = '+' OR s2.operator = '-')\n" +
-            "AND toLower(varType.name) = 'long'\n" +
-            "AND qName.name = 'Integer.MAX_VALUE' OR qName.name = 'Integer.MIN_VALUE'\n" +
-            "WITH s2 AS i\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge]->(varNumCast:CastExpression)-[:type]->(varType)\n" +
-            "WHERE toLower(varType.name) = 'long'\n" +
-            "WITH i, varNumCast\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge]->(varNumLiteral:NumberLiteral)\n" +
-            "WHERE varNumLiteral.name CONTAINS ('l') OR varNumLiteral.name CONTAINS ('L')\n" +
-            "OPTIONAL MATCH (i)-[:tree_edge*]->(:SimpleName)<-[:USE_BY]-()<-[:tree_edge*]-()-[:type]->(varType3)\n" +
-            "WHERE toLower(varType3.name) = 'long'\n" +
-            "WITH i, varNumCast, varNumLiteral, varType3\n" +
-            "OPTIONAL MATCH (i)<-[:tree_edge*]-(:CastExpression)-[:type]->(varType4)\n" +
-            "WHERE toLower(varType4.name) = 'long'\n" +
-            "WITH i, varNumCast, varNumLiteral, varType3, varType4\n" +
-            "WHERE varNumCast IS NULL AND varNumLiteral IS NULL AND varType3 IS NULL AND varType4 IS NULL  \n" +
-            "RETURN DISTINCT i.col AS col, i.line AS line, i.file AS file"
+queryDM_NUMBER_CTOR =
+        "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType),\n" +
+                "(newInstance)-[:argument]->(prefixExp),(prefixExp)-[:operand*0..1]->(var),\n" +
+                "(var)<-[:USE_BY*0..1]-(varDecFrag),(varDecFrag)<-[:fragment*0..1]-(varDecStat),\n" +
+                "(varDecStat)-[:initializer*0..1]->(pref),(pref)-[:operand*0..1]->(number)\n" +
+                "WHERE type.name in ['Long','Integer']\n" +
+                "AND NOT number.name =~ '(?i).*e.*'\n" +
+                "AND ( ( prefixExp.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
+                "      OR ( pref.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
+                "      OR toInteger(replace(replace(number.name,'L',''),'l','')) <= 127\n" +
+                "    )\n" +
+                "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
+                "ORDER BY newInstance.file,newInstance.line"
+
 
 
 cgProjects = [
-        'business-payment'           : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
-        'versata-m1.ems'             : 'e494eb5f-5a45-4259-b2a7-714f16dbd6b1',
-        'aurea-sonic-mq'             : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
-        'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
-        'ta-smartleads-lms-mct'      : '223915ff-d7cc-4acc-9b23-6c238c77f39a',
-        'aurea-aes-edi'              : '7fc8e251-9fca-4861-b245-8ccde4580f67',
-        'pss'                        : 'aad7ba6b-8069-4aa3-8a36-38cc5c5e20d1',
-        'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
-        'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
-        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
-        'aurea-java-brp-cs-ruletest' : '6214fe83-68ab-49c1-9dda-3a34ccd18991'
+//        'business-payment'           : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
+//        'versata-m1.ems'             : 'e494eb5f-5a45-4259-b2a7-714f16dbd6b1',
+//        'aurea-sonic-mq'             : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
+//        'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
+//        'ta-smartleads-lms-mct'      : '223915ff-d7cc-4acc-9b23-6c238c77f39a',
+//        'aurea-aes-edi'              : '7fc8e251-9fca-4861-b245-8ccde4580f67',
+//        'pss'                        : 'aad7ba6b-8069-4aa3-8a36-38cc5c5e20d1',
+//        'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
+//        'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
+//        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
+//        'aurea-java-brp-cs-ruletest' : '6214fe83-68ab-49c1-9dda-3a34ccd18991'
+
+'org.jenkins-ci.main:pom'                 : '15e366aa-fc18-4ea0-bec5-9443a2a7a8f4',
+//      'hibernate-orm'     :'f65e663c-ab46-44e2-be13-03d84eda1bf3',
+'org.apache.wicket:wicket-parent'         : '37821c2d-f736-46bc-b1a4-fa2400dab0e3',
+'org.apache.struts:struts2-parent'        : 'f31fed00-936f-47ae-8f83-71e6e223b8a8',
+'org.springframework:spring'              : 'ce1ab499-2bc4-49c8-adf9-8bf1f4e2e1e7',
+'org.apache.hive:hive'                    : '68151e65-78ab-46f8-aa28-7e90ef6168f8',
+'org.drools:drools'                       : 'b6546cab-7dd2-4748-99af-738658c7b5d7',
+'org.apache.activemq:activemq-parent'     : 'ea4b9d5a-35d3-4810-b605-7f7983062ff9',
+'org.eclipse.jetty:jetty-project'         : '1def6b67-e748-43e4-90a8-d9627e6688c6',
+'org.eclipse.jgit:org.eclipse.jgit-parent': '43c578b3-bd45-4fee-8ba4-1acfdb449ab8'
 ]
+
+String.metaClass.encodeURL = {
+    java.net.URLEncoder.encode(delegate, "UTF-8")
+}
 
 String componentRoots(Map cgProjects) {
     String ret = "componentRoots="
+    boolean comma = false;
     cgProjects.each {
-        ret += "," + it.key
+        if (comma) {
+            ret += new String("," + it.key).encodeURL()
+        } else {
+            comma = true;
+            ret += new String(it.key).encodeURL()
+        }
     }
     return ret;
 }
@@ -212,15 +134,16 @@ fileLocal = "/Users/ajanoni/sonarcsv"
 
 sonarBaseUrl = "http://brp-sonar.ecs.devfactory.com"
 
-ruleId = "rules=squid%3AS2184" //CHANGE THE RULE NAME HERE
+//ruleId = "rules=squid%3AS1210" //CHANGE THE RULE NAME HERE
+ruleId = "rules=findbugs%3ADM_NUMBER_CTOR"
 
 sonarUrl = sonarBaseUrl + "/api/issues/search?" + componentRoots(cgProjects) + "&" + ruleId
 
 sonarViolation = toViolationDTO(findViolations())
 
-cgViolation = getViolationFromCG(queryS2184) //CHANGE THE QUERY HERE
+cgViolation = getViolationFromCG(queryDM_NUMBER_CTOR) //CHANGE THE QUERY HERE
 
-exportToCsv("S2184", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
+exportToCsv("DM_NUMBER_CTOR", sonarViolation, cgViolation) //CHANGE THE QUERY HERE
 
 Set<Violation> getViolationFromCG(String query) {
 
@@ -274,6 +197,8 @@ Map<String, Map<String, List<String[]>>> findViolations() throws JSONException {
     ClientConfig cc = new DefaultClientConfig();
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     Client client = Client.create(cc);
+
+    println sonarUrl
 
     WebResource webResource = client.resource(sonarUrl)
             .queryParam("ps", String.valueOf(100))
@@ -355,8 +280,9 @@ String[] getStringsFromResponse(JSONObject issueObj, String file) throws JSONExc
     String message = issueObj.getString("message");
     String type = issueObj.getString("type");
     String project = issueObj.getString("project");
+    String subProject = issueObj.getString("subProject");
 
-    String fileOk = file.replaceAll(project + ":", '')
+    String fileOk = file.replaceAll(subProject+":", '')
     return [fileOk, startLine, endLine, startOffset, endOffset, message, type]
 }
 

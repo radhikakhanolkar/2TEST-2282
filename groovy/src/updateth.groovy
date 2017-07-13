@@ -23,17 +23,20 @@ import org.apache.http.conn.ConnectTimeoutException
 
 
 cgProjects = [
-        'https://scm-ba.devfactory.com/scm/cap/business-payment.git'  : 'bef53d1aa446076ea0217d85ab89c99d99da7a3a',
-        'https://github.com/trilogy-group/aurea-aes-edi.git'          : 'af3dc86',
-        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest' : '',
-        'https://github.com/trilogy-group/aurea-lyris-platform-edge'  : '15e8699d82de854f5e4d6c40fe137056afdd9854',
-        'https://github.com/trilogy-group/aurea-sonic-mq'             : '2b8497b82efb8f2af5ba016a006d1349b224d9ea',
-        'https://github.com/trilogy-group/devfactory-codegraph-server': 'fc3450cfa4fd1cce236daf0e4dbaf891104bd8bb',
-        'https://github.com/trilogy-group/ignite-sensage-analyzer.git': 'f46a44ecbc5e95f778fb4f72cdb86509632b28d2',
-        'https://github.com/trilogy-group/kerio-mykerio-kmanager'     : 'e40fd363d019e8ff29a90cbc974818abdd4dae7c',
-        'https://github.com/trilogy-group/ta-smartleads-lms-mct.git'  : 'db45cdba9dce7cd97e721f954e1d7c1b3f0dbb6f',
-        'https://github.com/trilogy-group/versata-m1.ems.git'         : '1045056ed830b808cca82ff4d06b4d9add50064c',
-        'https://scm.devfactory.com/stash/scm/uppowersteering/pss.git': '18d5ec487055ce16a639bdd8efb7ab434ffba4bf'
+//        'https://scm-ba.devfactory.com/scm/cap/business-payment.git'  : 'bef53d1aa446076ea0217d85ab89c99d99da7a3a',
+//        'https://github.com/trilogy-group/aurea-aes-edi.git'          : 'af3dc86',
+//        'https://github.com/trilogy-group/aurea-java-brp-cs-ruletest' : '',
+//        'https://github.com/trilogy-group/aurea-lyris-platform-edge'  : '15e8699d82de854f5e4d6c40fe137056afdd9854',
+//        'https://github.com/trilogy-group/aurea-sonic-mq'             : '2b8497b82efb8f2af5ba016a006d1349b224d9ea',
+//        'https://github.com/trilogy-group/devfactory-codegraph-server': 'fc3450cfa4fd1cce236daf0e4dbaf891104bd8bb',
+//        'https://github.com/trilogy-group/ignite-sensage-analyzer.git': 'f46a44ecbc5e95f778fb4f72cdb86509632b28d2',
+//        'https://github.com/trilogy-group/kerio-mykerio-kmanager'     : 'e40fd363d019e8ff29a90cbc974818abdd4dae7c',
+//        'https://github.com/trilogy-group/ta-smartleads-lms-mct.git'  : 'db45cdba9dce7cd97e721f954e1d7c1b3f0dbb6f',
+//        'https://github.com/trilogy-group/versata-m1.ems.git'         : '1045056ed830b808cca82ff4d06b4d9add50064c',
+//        'https://scm.devfactory.com/stash/scm/uppowersteering/pss.git': '18d5ec487055ce16a639bdd8efb7ab434ffba4bf'
+'https://github.com/trilogy-group/wicket.git'          : '0889d9ec569ff8a3edf17881941e52e9155bbb65',
+'https://github.com/trilogy-group/drools.git'          : '0a526a9876cc61374a50cf60a9c0bdf89e98ecd8',
+'https://github.com/trilogy-group/spring-framework.git': '88d3526ef1fcf0dc2bc9098159d98eaf472c245f'
 ]
 
 
