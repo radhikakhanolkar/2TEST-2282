@@ -5,6 +5,8 @@ public class InEfficientNumberConstructor {
     public void testRule1() {
         Integer numberInt = Integer.valueOf(127);
         Long numberLong = Long.valueOf(-128);
+        Integer numberInt2 = new Integer(128);
+        Long numberLong2 = new Long(-129);
     }
 
     public String testRule2(int myInt) {
