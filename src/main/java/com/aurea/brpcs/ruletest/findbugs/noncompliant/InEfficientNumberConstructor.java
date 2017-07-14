@@ -5,7 +5,6 @@ public class InEfficientNumberConstructor {
     public void testRule1() {
         Integer numberInt = new Integer(127); //
         Long numberLong = new Long(-128); //
-
     }
 
     public void testRule2() {
@@ -34,6 +33,11 @@ public class InEfficientNumberConstructor {
 
     public Integer testRule7(String myString) {
         return new Integer(myString); //
+    }
+
+    public void testRule8(){
+        Integer numberInt2 = new Integer(128);//
+        Long numberLong2 = new Long(-129);//
     }
 
 }
