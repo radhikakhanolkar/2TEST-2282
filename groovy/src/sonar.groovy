@@ -72,18 +72,19 @@ class Violation {
 
 
 queryDM_NUMBER_CTOR =
-        "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType),\n" +
-                "(newInstance)-[:argument]->(prefixExp),(prefixExp)-[:operand*0..1]->(var),\n" +
-                "(var)<-[:USE_BY*0..1]-(varDecFrag),(varDecFrag)<-[:fragment*0..1]-(varDecStat),\n" +
-                "(varDecStat)-[:initializer*0..1]->(pref),(pref)-[:operand*0..1]->(number)\n" +
-                "WHERE type.name in ['Long','Integer']\n" +
-                "AND NOT number.name =~ '(?i).*e.*'\n" +
-                "AND ( ( prefixExp.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
-                "      OR ( pref.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
-                "      OR toInteger(replace(replace(number.name,'L',''),'l','')) <= 127\n" +
-                "    )\n" +
-                "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
-                "ORDER BY newInstance.file,newInstance.line"
+       "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType),\n" +
+               "(newInstance)-[:argument]->(prefixExp),(prefixExp)-[:operand*0..1]->(var),\n" +
+               "(var)<-[:USE_BY*0..1]-(varDecFrag),(varDecFrag)<-[:fragment*0..1]-(varDecStat),\n" +
+               "(varDecStat)-[:initializer*0..1]->(pref),(pref)-[:operand*0..1]->(number)\n" +
+               "WHERE type.name in ['Long','Integer']\n" +
+               "AND NOT newInstance.file CONTAINS ('src/test') //Do not get violations in test files\n" +
+               "AND NOT number.name =~ '(?i).*e.*'\n" +
+               "AND (\n" +
+               "\t\t(pref.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
+               "      \tOR toInteger(replace(replace(number.name,'L',''),'l','')) <= 127\n" +
+               "\t)\n" +
+               "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
+               "ORDER BY newInstance.file,newInstance.line"
 
 
 
@@ -100,16 +101,16 @@ cgProjects = [
 //        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
 //        'aurea-java-brp-cs-ruletest' : '6214fe83-68ab-49c1-9dda-3a34ccd18991'
 
-'org.jenkins-ci.main:pom'                 : '15e366aa-fc18-4ea0-bec5-9443a2a7a8f4',
+//'org.jenkins-ci.main:pom'                 : '15e366aa-fc18-4ea0-bec5-9443a2a7a8f4',
 //      'hibernate-orm'     :'f65e663c-ab46-44e2-be13-03d84eda1bf3',
-'org.apache.wicket:wicket-parent'         : '37821c2d-f736-46bc-b1a4-fa2400dab0e3',
-'org.apache.struts:struts2-parent'        : 'f31fed00-936f-47ae-8f83-71e6e223b8a8',
-'org.springframework:spring'              : 'ce1ab499-2bc4-49c8-adf9-8bf1f4e2e1e7',
-'org.apache.hive:hive'                    : '68151e65-78ab-46f8-aa28-7e90ef6168f8',
-'org.drools:drools'                       : 'b6546cab-7dd2-4748-99af-738658c7b5d7',
-'org.apache.activemq:activemq-parent'     : 'ea4b9d5a-35d3-4810-b605-7f7983062ff9',
-'org.eclipse.jetty:jetty-project'         : '1def6b67-e748-43e4-90a8-d9627e6688c6',
-'org.eclipse.jgit:org.eclipse.jgit-parent': '43c578b3-bd45-4fee-8ba4-1acfdb449ab8'
+//'org.apache.wicket:wicket-parent'         : '37821c2d-f736-46bc-b1a4-fa2400dab0e3',
+    'org.apache.struts:struts2-parent'        : 'f31fed00-936f-47ae-8f83-71e6e223b8a8'
+//'org.springframework:spring'              : 'ce1ab499-2bc4-49c8-adf9-8bf1f4e2e1e7',
+//'org.apache.hive:hive'                    : '68151e65-78ab-46f8-aa28-7e90ef6168f8',
+//'org.drools:drools'                       : 'b6546cab-7dd2-4748-99af-738658c7b5d7',
+//'org.apache.activemq:activemq-parent'     : 'ea4b9d5a-35d3-4810-b605-7f7983062ff9',
+//'org.eclipse.jetty:jetty-project'         : '1def6b67-e748-43e4-90a8-d9627e6688c6',
+//'org.eclipse.jgit:org.eclipse.jgit-parent': '43c578b3-bd45-4fee-8ba4-1acfdb449ab8'
 ]
 
 String.metaClass.encodeURL = {

@@ -1,6 +1,10 @@
 package com.aurea.brpcs.ruletest.findbugs.noncompliant;
 
+import java.util.List;
+
 public class InEfficientNumberConstructor {
+
+    private static long COUNT = 5;
 
     public void testRule1() {
         Integer numberInt = new Integer(127); //
@@ -38,6 +42,10 @@ public class InEfficientNumberConstructor {
     public void testRule8(){
         Integer numberInt2 = new Integer(128);//
         Long numberLong2 = new Long(-129);//
+    }
+
+    public void testRule9(List list) {
+        list.add(new Long(++COUNT));
     }
 
 }
