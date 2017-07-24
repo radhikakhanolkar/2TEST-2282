@@ -31,13 +31,13 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
-@EqualsAndHashCode(excludes = 'col')
+@EqualsAndHashCode(excludes = ['col', 'file'])
 class Violation {
     String projectName
     String file
+    String fileName
     Integer line
     Integer col
 }
@@ -71,46 +71,35 @@ class Violation {
 //        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
 
 
-queryDM_NUMBER_CTOR =
-       "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType),\n" +
-               "(newInstance)-[:argument]->(prefixExp),(prefixExp)-[:operand*0..1]->(var),\n" +
-               "(var)<-[:USE_BY*0..1]-(varDecFrag),(varDecFrag)<-[:fragment*0..1]-(varDecStat),\n" +
-               "(varDecStat)-[:initializer*0..1]->(pref),(pref)-[:operand*0..1]->(number)\n" +
-               "WHERE type.name in ['Long','Integer']\n" +
-               "AND NOT newInstance.file CONTAINS ('src/test') //Do not get violations in test files\n" +
-               "AND NOT number.name =~ '(?i).*e.*'\n" +
-               "AND (\n" +
-               "\t\t(pref.operator = '-' AND toInteger(replace(replace(number.name,'L',''),'l','')) <= 128)\n" +
-               "      \tOR toInteger(replace(replace(number.name,'L',''),'l','')) <= 127\n" +
-               "\t)\n" +
-               "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
-               "ORDER BY newInstance.file,newInstance.line"
-
+queryDM_NUMBER_CTOR = "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType)\n" +
+        "WHERE type.name in ['Long','Integer', 'Short', 'Character', 'Byte']\n" +
+        "AND NOT newInstance.file CONTAINS ('src/test') //Do not get violations in test files\n" +
+        "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
+        "ORDER BY newInstance.file,newInstance.line\n"
 
 
 cgProjects = [
-//        'business-payment'           : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
-//        'versata-m1.ems'             : 'e494eb5f-5a45-4259-b2a7-714f16dbd6b1',
-//        'aurea-sonic-mq'             : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
-//        'ignite-sensage-analyzer'    : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
-//        'ta-smartleads-lms-mct'      : '223915ff-d7cc-4acc-9b23-6c238c77f39a',
-//        'aurea-aes-edi'              : '7fc8e251-9fca-4861-b245-8ccde4580f67',
-//        'pss'                        : 'aad7ba6b-8069-4aa3-8a36-38cc5c5e20d1',
-//        'kerio-mykerio-kmanager'     : 'cb7cd6df-a193-444f-8a17-633da0025a18',
-//        'aurea-lyris-platform-edge'  : '34267f92-0883-4004-bd33-1c570ab54552',
-//        'devfactory-codegraph-server': '0db9b092-2e84-438e-949e-5abaad903dad',
-//        'aurea-java-brp-cs-ruletest' : '6214fe83-68ab-49c1-9dda-3a34ccd18991'
-
-//'org.jenkins-ci.main:pom'                 : '15e366aa-fc18-4ea0-bec5-9443a2a7a8f4',
-//      'hibernate-orm'     :'f65e663c-ab46-44e2-be13-03d84eda1bf3',
-//'org.apache.wicket:wicket-parent'         : '37821c2d-f736-46bc-b1a4-fa2400dab0e3',
-    'org.apache.struts:struts2-parent'        : 'f31fed00-936f-47ae-8f83-71e6e223b8a8'
-//'org.springframework:spring'              : 'ce1ab499-2bc4-49c8-adf9-8bf1f4e2e1e7',
-//'org.apache.hive:hive'                    : '68151e65-78ab-46f8-aa28-7e90ef6168f8',
-//'org.drools:drools'                       : 'b6546cab-7dd2-4748-99af-738658c7b5d7',
-//'org.apache.activemq:activemq-parent'     : 'ea4b9d5a-35d3-4810-b605-7f7983062ff9',
-//'org.eclipse.jetty:jetty-project'         : '1def6b67-e748-43e4-90a8-d9627e6688c6',
-//'org.eclipse.jgit:org.eclipse.jgit-parent': '43c578b3-bd45-4fee-8ba4-1acfdb449ab8'
+//        'business-payment'                        : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
+//        'versata-m1.ems'                          : 'e494eb5f-5a45-4259-b2a7-714f16dbd6b1',
+//        'aurea-sonic-mq'                          : '5beea8ba-c579-46f8-8c9e-c94124a4f12e',
+//        'ignite-sensage-analyzer'                 : '28ade68a-dd2e-405e-a87a-549ecc0cf57d',
+//        'ta-smartleads-lms-mct'                   : '223915ff-d7cc-4acc-9b23-6c238c77f39a',
+//        'aurea-aes-edi'                           : '7fc8e251-9fca-4861-b245-8ccde4580f67',
+//        'pss'                                     : 'aad7ba6b-8069-4aa3-8a36-38cc5c5e20d1',
+//        'kerio-mykerio-kmanager'                  : 'cb7cd6df-a193-444f-8a17-633da0025a18',
+//        'aurea-lyris-platform-edge'               : '34267f92-0883-4004-bd33-1c570ab54552',
+//        'devfactory-codegraph-server'             : '0db9b092-2e84-438e-949e-5abaad903dad',
+        'aurea-java-brp-cs-ruletest'              : '9a3f2b9b-3bfa-4b99-b363-f1d0659fa778',
+        'org.jenkins-ci.main:pom'                 : '15e366aa-fc18-4ea0-bec5-9443a2a7a8f4',
+        'hibernate-orm'                           : 'f65e663c-ab46-44e2-be13-03d84eda1bf3',
+        'org.apache.wicket:wicket-parent'         : '37821c2d-f736-46bc-b1a4-fa2400dab0e3',
+        'org.apache.struts:struts2-parent'        : 'f31fed00-936f-47ae-8f83-71e6e223b8a8',
+        'org.springframework:spring'              : 'ce1ab499-2bc4-49c8-adf9-8bf1f4e2e1e7',
+        'org.apache.hive:hive'                    : '68151e65-78ab-46f8-aa28-7e90ef6168f8',
+        'org.drools:drools'                       : 'b6546cab-7dd2-4748-99af-738658c7b5d7',
+        'org.apache.activemq:activemq-parent'     : 'ea4b9d5a-35d3-4810-b605-7f7983062ff9',
+        'org.eclipse.jetty:jetty-project'         : '1def6b67-e748-43e4-90a8-d9627e6688c6',
+        'org.eclipse.jgit:org.eclipse.jgit-parent': '43c578b3-bd45-4fee-8ba4-1acfdb449ab8'
 ]
 
 String.metaClass.encodeURL = {
@@ -158,11 +147,14 @@ Set<Violation> getViolationFromCG(String query) {
         retry(3, { e -> e.printStackTrace() }) {
             cgClient.request(Method.POST, ContentType.JSON) { req ->
                 body = [query: query, querytype: 'cypher', resulttype: 'row']
-                println 'request'
+                println 'request:'
+                println body
                 response.success = { resp, json ->
                     json.results.data.row.each {
                         it.each {
-                            retViolation.add(new Violation([projectName: k, file: it[2], line: it[1], col: it[0]]))
+                            String completeFile = it[2];
+                            String fileName = completeFile.substring(completeFile.lastIndexOf("/"), completeFile.size())
+                            retViolation.add(new Violation([projectName: k, file: completeFile, fileName: fileName, line: it[1], col: it[0]]))
                         }
                     }
                 }
@@ -281,9 +273,13 @@ String[] getStringsFromResponse(JSONObject issueObj, String file) throws JSONExc
     String message = issueObj.getString("message");
     String type = issueObj.getString("type");
     String project = issueObj.getString("project");
-    String subProject = issueObj.getString("subProject");
+    String subProject = "";
+    if(issueObj.has(subProject)){
+        subProject = issueObj.getString("subProject");
+    }
 
-    String fileOk = file.replaceAll(subProject+":", '')
+
+    String fileOk = file.replaceAll(subProject + ":", '')
     return [fileOk, startLine, endLine, startOffset, endOffset, message, type]
 }
 
@@ -392,16 +388,16 @@ void exportToCsv(String ruleName, Set<Violation> sonarViolation, Set<Violation> 
 
     println "===== Files not found in Sonar ====="
     println cgViolation.findAll {
-        !sonarViolation.file.contains(it.file)
+        !sonarViolation.fileName.contains(it.fileName)
     }.file
 
     println "===== Files not found in CG ====="
     println sonarViolation.findAll {
-        !cgViolation.file.contains(it.file)
+        !cgViolation.fileName.contains(it.fileName)
     }.file
 
-    def countCg = cgViolation.countBy { it.file }
-    def countSonar = sonarViolation.countBy { it.file }
+    def countCg = cgViolation.countBy { it.fileName }
+    def countSonar = sonarViolation.countBy { it.fileName }
 
     countCg.intersect(countSonar).each {
         countCg.remove(it.key);
@@ -427,7 +423,9 @@ Set<Violation> toViolationDTO(Map<String, Map<String, List<String[]>>> projectRu
 
             List<String[]> violations = entryRuleViolation.getValue();
             for (String[] item : violations) {
-                retViolationDTO.add(new Violation([projectName: projectName, file: item[0], line: item[1].toInteger(), col: item[3].toInteger()]))
+                String completeFile = item[0];
+                String fileName = completeFile.substring(completeFile.lastIndexOf("/"), completeFile.size())
+                retViolationDTO.add(new Violation([projectName: projectName, file: completeFile, fileName: fileName, line: item[1].toInteger(), col: item[3].toInteger()]))
             }
         }
     }
