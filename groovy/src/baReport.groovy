@@ -100,7 +100,7 @@ void main() {
 
 
 void writeCSV(List<String[]> list) {
-    resultPath = "/Users/ajanoni/Java/brp_report_result.csv"
+    resultPath = "/Users/ajanoni/sonarcsv/brp_report_result_2.csv"
     Writer fileRbfWriter = new OutputStreamWriter(
             new FileOutputStream(resultPath),
             StandardCharsets.UTF_8)
@@ -126,7 +126,7 @@ void writeCSV(List<String[]> list) {
 
 List<ReportInput> getReportInput() {
     String[] CSV_REPORT_MAPPING = ["sourceUrl", "branch", "startRevision", "endRevision"]
-    File fileCsv = new File("/Users/ajanoni/Java/brp_report_export.csv")
+    File fileCsv = new File("/Users/ajanoni/sonarcsv/brp_export_report.csv")
     Reader fileCsvReader = new InputStreamReader(new FileInputStream(fileCsv), StandardCharsets.UTF_8)
     CSVReader csvReader = new CSVReader(fileCsvReader);
     ColumnPositionMappingStrategy<ReportInput> mappingStrategy =
