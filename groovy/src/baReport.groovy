@@ -100,7 +100,7 @@ void main() {
 
 
 void writeCSV(List<String[]> list) {
-    resultPath = "/Users/ajanoni/sonarcsv/brp_report_result_2.csv"
+    resultPath = "/Users/ajanoni/sonarcsv/brp_report_result_3.csv"
     Writer fileRbfWriter = new OutputStreamWriter(
             new FileOutputStream(resultPath),
             StandardCharsets.UTF_8)
@@ -126,7 +126,7 @@ void writeCSV(List<String[]> list) {
 
 List<ReportInput> getReportInput() {
     String[] CSV_REPORT_MAPPING = ["sourceUrl", "branch", "startRevision", "endRevision"]
-    File fileCsv = new File("/Users/ajanoni/sonarcsv/brp_export_report.csv")
+    File fileCsv = new File("/Users/ajanoni/sonarcsv/brp_data_report.csv")
     Reader fileCsvReader = new InputStreamReader(new FileInputStream(fileCsv), StandardCharsets.UTF_8)
     CSVReader csvReader = new CSVReader(fileCsvReader);
     ColumnPositionMappingStrategy<ReportInput> mappingStrategy =
@@ -180,7 +180,7 @@ Set<ViolationItem> getViolations(String sourceUrl, String branch, String revisio
                 "WHERE b.source_url LIKE CONCAT(:REPO_URL, '%') " +
                 "AND b.branch = :BRANCH " +
                 "AND b.revision = :REVISION " +
-                "AND b.message LIKE 'Processed successfully.%' " +
+                //"AND b.message LIKE 'Processed successfully.%' " +
                 "GROUP BY v.issue_key, v.file_key, v.line_number "
 
 

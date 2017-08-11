@@ -62,7 +62,7 @@ cgProjects = [
 //        'https://github.com/trilogy-group/devfactory-ideplugins2.0-visualstudio-plugin': '',
 //        'https://github.com/trilogy-group/devfactory-utbelt'                           : '',
 //        'https://github.com/trilogy-group/gfi-eventsmanager'                           : '',
-//        'https://github.com/trilogy-group/gfi-oneguard'                                : '',
+        'https://github.com/trilogy-group/gfi-oneguard'                                : '',
 //        'https://github.com/trilogy-group/ignite-acorn-eps'                            : '',
 //        'https://github.com/trilogy-group/jenkins/tree/master'                         : '',
 //        'https://github.com/trilogy-group/kerio-connect-connect'                       : '',
@@ -119,7 +119,7 @@ cgProjects = [
 //        'https://scm.devfactory.com/stash/scm/easycover/backend.net'                   : '',
 //        'https://scm.devfactory.com/stash/scm/messageone/m1-ems'                       : '',
 //        'https://scm.devfactory.com/stash/scm/strongtest/strong-test-dot-net-plugin'   : '',
-//        'https://scm.devfactory.com/stash/scm/upland-eclipse/eclipse'                  : '',
+        'https://scm.devfactory.com/stash/scm/upland-eclipse/eclipse'                  : ''
 //        'https://scm.devfactory.com/stash/scm/upland-filebound/leadlander'             : '',
 //        'https://scm.devfactory.com/stash/scm/weaktests/backend'                       : ''
 ]
@@ -177,24 +177,26 @@ private void processResponse(json, sourceUrl, revision) {
             pUsername = 'service.adfp.jenkins'
             pPassword = ')Cf$a8ct7QAWkD2+'
         }
-        cgClientPOST.request(Method.POST, ContentType.JSON) { req2 ->
-            body = [language    : 'c#',
-                    repo_url    : sourceUrl,
-                    type        : 'git',
-                    username    : pUsername,
-                    password    : pPassword,
-                    author_name : 'alexandre.janoni',
-                    author_email: 'alexandre.janoni@aurea.com']
 
-            response.success = { resp2, json2 ->
-                println ">>>" + json2.db_id + "," + sourceUrl + "," + pUsername + "," + pPassword
-            }
-
-            response.failure = { resp2 ->
-                println "Unexpected error: ${resp2.statusLine.statusCode}"
-                println $ { resp2.statusLine.reasonPhrase }
-            }
-        }
+        println sourceUrl + ", , ,"
+//        cgClientPOST.request(Method.POST, ContentType.JSON) { req2 ->
+//            body = [language    : 'java',
+//                    repo_url    : sourceUrl,
+//                    type        : 'git',
+//                    username    : pUsername,
+//                    password    : pPassword,
+//                    author_name : 'alexandre.janoni',
+//                    author_email: 'alexandre.janoni@aurea.com']
+//
+//            response.success = { resp2, json2 ->
+//                println ">>>" + json2.db_id + "," + sourceUrl + "," + pUsername + "," + pPassword
+//            }
+//
+//            response.failure = { resp2 ->
+//                println "Unexpected error: ${resp2.statusLine.statusCode}"
+//                println $ { resp2.statusLine.reasonPhrase }
+//            }
+//        }
     } else {
         if (ret.size() > 1) {
             ret = ret.sort {
@@ -203,10 +205,65 @@ private void processResponse(json, sourceUrl, revision) {
         }
 
         def cgProject = ret[0]
-        println sourceUrl + "," + cgProject["branch"] + "," + cgProject["revision"] + "," + cgProject["requestId"]
+
+        //println sourceUrl + "," + cgProject["branch"] + "," + cgProject["revision"] + "," + cgProject["requestId"]
+        verifyAndDelete(cgProject, sourceUrl)
+
     }
 
 
+}
+
+private void verifyAndDelete(cgProject, sourceUrl) {
+    def cgClient = new RESTClient('https://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs/' + cgProject["requestId"] + '/query')
+    cgClient.getClient().params.setParameter("http.connection.timeout", 30000)
+    cgClient.getClient().params.setParameter("http.socket.timeout", 30000)
+    boolean hasResults = false;
+    def query = "MATCH (n)\n" +
+            "WHERE NOT n.file IS NULL\n" +
+            "AND n.file CONTAINS ('.java')\n" +
+            "RETURN DISTINCT n.file LIMIT 1"
+    try {
+        cgClient.request(Method.POST, ContentType.JSON) { req ->
+            body = [query: query, querytype: 'cypher', resulttype: 'row']
+            response.success = { resp, json2 ->
+                json2.results.data.row.each {
+                    it.each {
+                        hasResults = true
+                    }
+                }
+            }
+
+            response.failure = { resp ->
+                println "Unexpected error: ${resp.statusLine.statusCode}"
+                println $ { resp.statusLine.reasonPhrase }
+            }
+        }
+    } catch (Exception ex ) {
+        ex.printStackTrace();
+    }
+
+    if (hasResults) {
+        println "OK," + sourceUrl + "," + cgProject["branch"] + "," + cgProject["revision"] + "," + cgProject["requestId"]
+    } else {
+        println "NOK," + sourceUrl + "," + cgProject["branch"] + "," + cgProject["revision"] + "," + cgProject["requestId"]
+
+//        def cgClientDelete = new RESTClient('https://codegraph-api-prod.ecs.devfactory.com/api/1.0/graphs/' + cgProject["requestId"])
+//        cgClientDelete.getClient().params.setParameter("http.connection.timeout", 30000)
+//        cgClientDelete.getClient().params.setParameter("http.socket.timeout", 30000)
+//
+//        cgClientDelete.request(Method.DELETE) {
+//            response.success = { resp, json3 ->
+//                println cgProject["requestId"] + " DELETED."
+//            }
+//
+//            response.failure = { resp ->
+//                println "Unexpected error: ${resp.statusLine.statusCode}"
+//                println $ { resp.statusLine.reasonPhrase }
+//            }
+//        }
+
+    }
 }
 
 
