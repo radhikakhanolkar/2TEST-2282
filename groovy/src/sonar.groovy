@@ -93,7 +93,13 @@ queryS1700 = "MATCH (n:TypeDeclaration)-[:name]->(className:SimpleName), \n" +
         "(field)-[:tree_edge]-(fieldType)\n" +
         "WHERE LOWER(className.name) = LOWER(fieldName.name)\n" +
         "AND NOT (LOWER(fieldType.name) = LOWER(className.name) AND field.modifiers CONTAINS 'static')\n" +
-        "RETURN DISTINCT field.col as col, field.endLine as line, field.file as file"
+        "RETURN DISTINCT field.col as col, field.line as line, field.file as file\n" +
+        "UNION\n" +
+        "MATCH (enum:EnumDeclaration)-[:tree_edge]->(field:FieldDeclaration)-[:fragment]->(:VariableDeclarationFragment)-[:name]->(fieldName:SimpleName),\n" +
+        "(field)-[:tree_edge]-(fieldType)\n" +
+        "WHERE LOWER(enum.name) = LOWER(fieldName.name)\n" +
+        "AND NOT (LOWER(fieldType.name) ENDS WITH LOWER(enum.name) AND field.modifiers CONTAINS 'static')\n" +
+        "RETURN DISTINCT field.col as col, field.line as line, field.file as file"
 
 //cgProjects = [
 //        'business-payment'                        : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
