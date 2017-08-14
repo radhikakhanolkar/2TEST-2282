@@ -1,9 +1,13 @@
 package com.aurea.brpcs.ruletest.squid.noncompliant;
 
 public enum S1700Rule5 {
+    ONE("one"),
+    TWO("two"),
+    THREE("three");
 
-    ONE,
-    TWO,
-    S1700Rule5
+    public final String s1700Rule5;
 
+    private S1700Rule5(String str) {
+        this.s1700Rule5 = str;
+    }
 }
