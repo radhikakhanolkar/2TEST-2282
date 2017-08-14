@@ -77,15 +77,23 @@ cgErrorList = new ArrayList<String[]>()
 //        "RETURN vd.col AS col, vd.line AS line, vd.file AS file"
 
 
-queryDM_NUMBER_CTOR = "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType)\n" +
-        "WHERE type.name in ['Long','Integer', 'Short', 'Character', 'Byte']\n" +
-        "AND NOT newInstance.file CONTAINS ('src/test') //Do not get violations in test files\n" +
-        "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
-        "ORDER BY newInstance.file,newInstance.line\n"
+//queryDM_NUMBER_CTOR = "MATCH (newInstance:ClassInstanceCreation)-[:type]->(type:SimpleType)\n" +
+//        "WHERE type.name in ['Long','Integer', 'Short', 'Character', 'Byte']\n" +
+//        "AND NOT newInstance.file CONTAINS ('src/test') //Do not get violations in test files\n" +
+//        "RETURN DISTINCT newInstance.col as col, newInstance.line as line, newInstance.file as file\n" +
+//        "ORDER BY newInstance.file,newInstance.line\n"
+//
+//
+//queryS1116 = "MATCH (n:EmptyStatement)\n" +
+//        "RETURN DISTINCT n.col as col, n.line as line, n.file as file"
 
 
-queryS1116 = "MATCH (n:EmptyStatement)\n" +
-        "RETURN DISTINCT n.col as col, n.line as line, n.file as file"
+queryS1700 = "MATCH (n:TypeDeclaration)-[:name]->(className:SimpleName), \n" +
+        "(n)-[:tree_edge]->(field:FieldDeclaration)-[:fragment]->(:VariableDeclarationFragment)-[:name]->(fieldName:SimpleName),\n" +
+        "(field)-[:tree_edge]-(fieldType)\n" +
+        "WHERE LOWER(className.name) = LOWER(fieldName.name)\n" +
+        "AND NOT (LOWER(fieldType.name) = LOWER(className.name) AND field.modifiers CONTAINS 'static')\n" +
+        "RETURN DISTINCT field.col as col, field.endLine as line, field.file as file"
 
 //cgProjects = [
 //        'business-payment'                        : 'a98c9c54-23c1-4dfc-a9d1-5335c1368af3',
@@ -114,7 +122,87 @@ queryS1116 = "MATCH (n:EmptyStatement)\n" +
 
 
 cgProjects = [
-
+        'org.apache.maven:maven':'7a0fa3bb-eb05-474b-a3c8-a7a539d2cc63',
+        'bitcoinj':'95027d5a-167e-4afb-b70f-3aaea6f1db62',
+        'grunt-contrib-jshint':'df70dc57-7d02-4c9d-a24a-532ffac0dc4c',
+        'jasmine':'459a3cd4-ed11-44fa-85d8-b64bd6921d62',
+        'MiniBlog':'4953b20f-015b-4142-be45-b0db16e07214',
+        'LiteDB':'e1946089-f4a4-493e-a0f2-bd3c61fbb96a',
+        'protobuf-net':'4e18183e-5a0c-49cf-a9e3-9c3077800235',
+        'Nancy':'dd938c1e-2af8-4644-bd3d-5d4ea7bd0006',
+        'nhibernate-core':'0218d32c-04ec-48c4-b617-2899184a6880',
+        'nopCommerce':'602c4fb8-ae3c-407b-bc7a-1a3c2fa63528',
+        'ModernHttpClient':'00a08e3f-b6e9-451c-8088-fcc7c2023604',
+        'Leaflet':'bfa31277-2409-46b7-8efb-044f7ffc7d14',
+        'cs_sample':'381b67d1-90a4-4e52-864a-cf0a6abbafb7',
+        'rest-api-violation':'145882e5-4428-42aa-b312-1c963b98ab3d',
+        'RestSharp':'93d1eb5c-7d42-4320-a7e3-355fa65bdcca',
+        'fluentmigrator':'cc989f1f-2b5a-4652-b615-50fa120e2f93',
+        'SignalR':'45e4ef20-2835-4afe-aaac-12abdee35b8b',
+        'aws-maven':'829211b3-09e1-4c0d-9e1a-d6693aa78706',
+        'okhttp':'0ec44e77-dd4f-4f06-a66f-1c9f2d39d977',
+        'aLine-FirewalForCode':'b2733b68-8e95-4b37-9f3a-77a8232e5c31',
+        'aurea-ace-generix':'accbc5b0-b470-403d-894f-9a27c6fbdd1e',
+        'aurea-crm-aline':'6ea4706d-83d0-400a-8c61-5c922ca6ca47',
+        'aurea-crm-office-addin':'d79b8c62-ccbe-4605-8c0a-980c3379aeba',
+        'aurea-dxsi':'66d33df4-a0a6-408e-b986-c18bf3324ce6',
+        'aurea-ipm-main':'e9835ef3-f79b-4fea-9ee6-eb0762f48b66',
+        'aurea-nextdocs-adlib':'be1b88d7-aad1-468b-8565-b48d6fd4952a',
+        'aurea-sonic-mq':'e882df5c-0aff-4ac8-bd7b-93715dcd4464',
+        'bc-java':'b9e80244-3f75-4d37-a815-3db32ee75914',
+        'devfactory-docker-scorecard':'0a80a437-8ff8-468e-8471-5b7340bb2937',
+        'devfactory-ideplugins2.0-visualstudio-plugin':'86f7e6ee-ef1f-4edc-a7e5-28b79ed534a9',
+        'gfi-eventsmanager':'2e39d655-aff0-42d0-a374-dc0d4ceb26d0',
+        'gfi-oneguard':'27f12203-7002-4a9e-8e43-da044938c4ef',
+        'kerio-connect-connect':'f1d4541e-01fc-4b46-9af9-94a22287a398',
+        'kerio-winroute-at-mykerio':'548bf803-621f-4f96-a18f-ed13893bdf83',
+        'QuickSearch-demo':'e06f314a-92b6-443a-8888-80aa435e787d',
+        'versata-epmlive-epml-c2':'7e45e24a-28b0-4e23-996c-f91a28ec6694',
+        'versata-m1.client-ems-client':'196fcc5b-6665-4c2b-8965-46632c0b856e',
+        'business-avios':'bdfc1e85-699c-46b8-94fc-87e1413752d7',
+        'business-framework':'5edb4d25-bbe1-4445-93c8-812f14b53c83',
+        'business-redemptions-builders':'587ab054-2d61-43b3-aa9c-ce13121e729c',
+        'reservations-common':'1b39a13f-4c77-441a-8774-2990b0daf6cf',
+        'web-contextualisation':'f11a9c50-2091-49cd-8586-6de7a03aa71d',
+        'web-diagtool':'cf53c631-ca63-4513-94fe-85e805b88866',
+        'web-framework-schema':'4cc2ae1f-175b-4cce-8831-3eb0f3e17470',
+        'web-payment':'c23fca66-7921-4186-abfc-44c61bb3b567',
+        'web-selling-builders':'24c17a1d-8422-4d8a-96e1-8bb6e5bbaa29',
+        'web-sitenavigation':'1471cfbe-2569-4496-b49e-b89d5b914be3',
+        'web-xmlhttp-proxy':'e2d419da-f0e9-4489-ac75-27e1efb22505',
+        'fc-baflt-bafma':'d8897271-183f-4de6-8f83-7974d3e74fac',
+        'fc-ndc-cma':'905faf9a-0cd4-475a-9606-d62e3872a9c9',
+        'fc-pym-vpa':'c890ccf1-5c17-4788-ab77-26cc4e71bfa8',
+        'fc-sea-sesa':'cbc5b8ea-de3b-4f80-bfed-94dc535bac1b',
+        'mp-evm-evtm':'cb1d7f73-0a8d-481f-9e0f-6feeabae7797',
+        'aaui-cpm':'c9b8609e-83ef-47fd-a451-62b207e14fab',
+        'acd-emdm':'e62e1d80-4d33-4bde-92ca-94e02743309c',
+        'asm-ema':'50f13e6d-f104-449d-b884-8a0014b17441',
+        'fc-baflt-bafma':'fa4d9ca6-67e9-4ae0-b5eb-4caf1e10571e',
+        'services-bds-mdp':'778527ed-c225-4efa-8e2e-2d485041fd6f',
+        'services-car-cav':'7bbcaa54-a9d4-4641-8e99-deb33888e1b2',
+        'services-cargopub-cargopub':'696d5e5b-fcd6-4b42-9715-b376c1cc1c26',
+        'services-cem-cpr':'ac055ec4-ae3c-4045-a056-430dbc14c0ac',
+        'services-cmg-ccb':'4fac24b4-fe5b-4b8a-97ac-8484ea04b008',
+        'services-concur-tem':'2ab2f23a-200f-4960-bb1e-44e368b74af9',
+        'services-core-ehcache':'2b3c1569-519e-4aa2-93be-8c64f36046c2',
+        'services-crw-ccbt':'98c7d330-a4a4-451a-adaf-52d668f1acad',
+        'services-dvm-tcm':'f11ed2cd-655d-4e76-a5e8-e60e3dc94d18',
+        'services-fli-cbu':'d8119309-34de-4a32-932a-6a4d310cfd13',
+        'services-fom-foma':'ba9cdc80-c7c2-4e0b-9d3f-4fcd019c3957',
+        'services-iata-ssba':'af97746f-722c-4f7d-8816-1ec9e496e4f1',
+        'services-meo-lca':'e22fb4f9-c16b-43d6-a7db-bb00a31e1253',
+        'services-ndc-dist':'4caa2a86-002f-4436-954c-0aca4c7477fa',
+        'services-orm-ordrt':'bef09daf-a0c6-4893-8286-6ac5ee7e51c4',
+        'services-pega-cma':'78671aad-6349-4c54-a85b-665be44fd63f',
+        'services-sas-mfas':'f8f23e15-5a63-4bb2-9a9c-450b047ebb55',
+        'services-sse-invm':'fae43d1c-b3fe-4ed0-8783-7d444d349e06',
+        'services-sse-sbkm':'5e274a6d-98c1-4a10-b2e9-117dc356b399',
+        'services-svrm-manc':'19962ade-aeac-4bc6-8d71-d9a0f38f8611',
+        'bandcamp':'edac44f8-e66b-4436-b911-11ee488bcff7',
+        'gfi-oneconnect-M1-EMSClient':'897b114d-b88a-423a-8666-28de1237ffee',
+        'eclipse':'25ba5d28-3475-48b6-a5ba-b4d9722e3be5',
+        'leadlander':'25ba5d28-3475-48b6-a5ba-b4d9722e3be5'
 ]
 
 
@@ -128,11 +216,11 @@ sonarBaseUrl = "http://brp-sonar.ecs.devfactory.com"
 ruleId = "rules=squid%3AS1700" //CHANGE THE RULE NAME HERE
 //ruleId = "rules=findbugs%3ADM_NUMBER_CTOR"
 sonarUrl = sonarBaseUrl + "/api/issues/search?" + componentRoots(cgProjects) + "&" + ruleId
-ruleName = "S700"
+ruleName = "S1700"
 
 sonarViolation = toViolationDTO(findViolations())
 
-cgViolation = getViolationFromCG(queryS1116) //CHANGE THE QUERY HERE
+cgViolation = getViolationFromCG(queryS1700) //CHANGE THE QUERY HERE
 
 //exportToCsvSummary(ruleName, sonarViolation, cgViolation) //CHANGE THE QUERY HERE
 //
