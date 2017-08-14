@@ -7,7 +7,7 @@ public enum S1700Rule5 {
 
     public final String s1700Rule5;
 
-    private S1700Rule5(String str) {
+    S1700Rule5(String str) {
         this.s1700Rule5 = str;
     }
 }
