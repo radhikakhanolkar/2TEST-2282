@@ -21,6 +21,7 @@ public class S2110Rule {
         Calendar calHr = new GregorianCalendar(2014, 11, 20, 24, 0); // Noncompliant - hour of day
         Calendar calMin = new GregorianCalendar(2014, 11, 20, 12, 90); // Noncompliant - minutes
         Calendar calSecs = new GregorianCalendar(2014, 11, 20, 12, 30, 90); // Noncompliant -
+
         // seconds
 
         if (c.get(Calendar.MONTH) == 12) { // Noncompliant; invalid comparison

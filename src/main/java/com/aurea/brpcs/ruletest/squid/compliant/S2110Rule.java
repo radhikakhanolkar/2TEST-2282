@@ -47,7 +47,7 @@ public class S2110Rule {
 
     // Test case 2
     public void testDate2() {
-        java.sql.Date dateSql = new java.sql.Date(2020, 12, 2);
+        java.sql.Date dateSql = new java.sql.Date(2020, 11, 2);
         dateSql.setYear(2021);
         dateSql.setMonth(11);
         dateSql.setDate(28);
