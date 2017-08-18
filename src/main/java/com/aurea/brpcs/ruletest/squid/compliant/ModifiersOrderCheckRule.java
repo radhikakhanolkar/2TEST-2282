@@ -17,7 +17,8 @@ public class ModifiersOrderCheckRule {
         return 2;
     }
 
-    @NotNull public Integer case4() {
+    @NotNull
+    public Integer case4() {
         return 1;
     }
 }
