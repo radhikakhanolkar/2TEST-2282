@@ -1,5 +1,7 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
+import javax.validation.constraints.NotNull;
+
 public class ModifiersOrderCheckRule {
 
     public static void main(String[] args) {
@@ -15,4 +17,7 @@ public class ModifiersOrderCheckRule {
         return 2;
     }
 
+    @NotNull public Integer case4() {
+        return 1;
+    }
 }
