@@ -20,7 +20,7 @@ public class S2110Rule {
         Calendar calMth = new GregorianCalendar(2014, 11, 35); // Noncompliant - day of month
         Calendar calHr = new GregorianCalendar(2014, 11, 20, 24, 0); // Noncompliant - hour of day
         Calendar calMin = new GregorianCalendar(2014, 11, 20, 12, 90); // Noncompliant - minutes
-        Calendar calSecs = new GregorianCalendar(2014, 11, 20, 12, 30, 90); // Noncompliant -
+        //Calendar calSecs = new GregorianCalendar(2014, 11, 20, 12, 30, 90); // Noncompliant -
 
         // seconds
 
