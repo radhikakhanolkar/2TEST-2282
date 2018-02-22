@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets
  */
 
 
-class CsCg {
+class CgLine {
     String sourceUrl
     String branch
     String language
@@ -50,95 +50,98 @@ String.metaClass.encodeURL = {
     java.net.URLEncoder.encode(delegate, "UTF-8")
 }
 
-println ">>> SCRIPT STARTED <<<"
+println ">>> SCRIPT STARTED LOC<<<"
 
 ICodegraphClient cgClient = new CodegraphClient(
         URI.create("http://codegraph-rest-server-prod.ecs.devfactory.com/api/v1.0/"), "brp_th", "brp_th");
 
-List<CsCg> listOfRepos = getCgImportInput(new File("/Users/ajanoni/my_part.csv"));
+List<CgLine> listOfRepos = getCgImportInput(new File("/Users/ajanoni/Downloads/loc_script_10.tsv"));
 
 List<String> messages = new ArrayList<>();
 
-List<Build> listBuild = cgClient.allBuilds;
-GParsPool.withPool(10) {
+List<Build> listBuild = cgClient.allBuilds.sort{it.createdAt};
+GParsPool.withPool(30) {
     listOfRepos.eachParallel { repo ->
         Build buildExist = listBuild.find { x ->
             x.getRequest().getSourceLocation().toString().equalsIgnoreCase(repo.getSourceUrl()) &&
                     x.getRequest().getBranch().equalsIgnoreCase(repo.getBranch()) &&
                     x.getRequest().getCommit().equalsIgnoreCase(repo.getRevision()) &&
                     x.getRequest().getLanguage().toString().equalsIgnoreCase(repo.getLanguage()) &&
-                    x.getStatus().equalsIgnoreCase("successful")
+                    x.getStatus().equalsIgnoreCase("successful") &&
+                    x.createdAt != null
         }
 
-
-
         if (buildExist!=null) {
-            if(isGoodBuild(buildExist, cgClient)) {
-                messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + ", OK");
+            Optional<ISandbox> sandbox = getSandBox(buildExist, cgClient);
+            if(!sandbox.isPresent()) {
+                messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + ", NO SANDBOX");
             } else {
-                messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + ", NOK BUILD");
+                try {
+                    result = new JsonSlurper().parseText(sandbox.get().executeQuery("MATCH (f:File) RETURN sum(toInteger(f.CountLine)) as loc", QueryType.CYPHER));
+                    def loc = (Long) result.results[0].data[0].row[0];
+                    messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + "," + loc);
+                } catch(e) {
+                    messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + ",ERROR GETTING RESULTS");
+                }
+
+//                try {
+//                    cgClient.deactivateSandbox(buildExist.getRequestId());
+//                } catch(ex){
+//                    println "Erro deactivating sandbox:" + ex.getMessage()
+//                }
             }
         } else {
-            println repo.getSourceUrl() + "," + repo.branch + "," + repo.revision + "," + repo.language + "," + "NOK"
-//            Request req = Request.builder()
-//                    .sourceLocation(URI.create(repo.sourceUrl))
-//                    .branch(repo.branch)
-//                    .commit(repo.revision)
-//                    .language(Language.fromValue(repo.language))
-//                    .build();
-//
-//            retry(1, { e -> messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + "," + e.getMessage()) }) {
-//                cgClient.triggerBuild(req);
-//            }
-
+            messages.add(repo.getSourceUrl() + "," + repo.getBranch() + "," + repo.getRevision() + "," + repo.getLanguage() + ",BUILD DOES NOT EXIST");
         }
     }
 
-
-    def resultFile = new File("/Users/ajanoni/my_part_result.csv")
+    def resultFile = new File("/Users/ajanoni/Downloads/loc_script_10.log.tsv")
     resultFile.withWriter{ out ->
         messages.each {out.println it}
     }
-    
-
 }
 
-@VisibleForTesting
-boolean isGoodBuild(Build build, ICodegraphClient cgClient) {
+Optional<ISandbox> getSandBox(Build build, ICodegraphClient cgClient) {
     int nodes;
     def result;
     try {
-        ISandbox sandbox = cgClient.getSandbox(build.getRequestId());
-        if (!sandbox.getStatus().equals(SandboxStatus.ACTIVE)) {
-            cgClient.activateSandbox(build.getRequestId());
+        ISandbox sandbox;
+        retry{
+            sandbox = cgClient.getSandbox(build.getRequestId());
+            if (!sandbox.getStatus().equals(SandboxStatus.ACTIVE)) {
+                cgClient.activateSandbox(build.getRequestId());
+            }
+            result = new JsonSlurper().parseText(sandbox.executeQuery("MATCH (n) RETURN count(n) as col, 0 as line, 'files' as file", QueryType.CYPHER));
+            nodes = (Integer) result.results[0].data[0].row[0];
         }
-        result = new JsonSlurper().parseText(sandbox.executeQuery("MATCH (n) RETURN count(n) as col, 0 as line, 'files' as file", QueryType.CYPHER));
-        nodes = (Integer) result.results[0].data[0].row[0];
-        cgClient.deactivateSandbox(build.getRequestId());
+        if(nodes>1) {
+            return Optional.of(sandbox);
+        } else {
+            println "Empty neo4j db:" + build.getRequestId();
+        }
     } catch (CodegraphClientException | IOException e) {
-        log.error("Error from CodeGraph: {}", e.getMessage());
-        return false;
+        println "Error from CodeGraph: " + e.getMessage();
     } catch (ex) {
         println result;
         println ex.getMessage()
     }
-    return nodes > 1;
+    return Optional.empty();
 }
 
 
-List<CsCg> getCgImportInput(File fileCsv) {
+List<CgLine> getCgImportInput(File fileCsv) {
     String[] CSV_CS_MAPPING = ["sourceUrl", "branch", "revision", "language"]
     Reader fileCsvReader = new InputStreamReader(new FileInputStream(fileCsv), StandardCharsets.UTF_8)
-    CSVReader csvReader = new CSVReader(fileCsvReader);
-    ColumnPositionMappingStrategy<CsRepo> mappingStrategy =
+    CSVReader csvReader = new CSVReader(fileCsvReader, (char)'\t');
+    ColumnPositionMappingStrategy<CgLine> mappingStrategy =
             new ColumnPositionMappingStrategy<>();
-    mappingStrategy.setType(CsRepo.class);
+    mappingStrategy.setType(CgLine.class);
     mappingStrategy.setColumnMapping(CSV_CS_MAPPING);
     CsvToBean<CsCg> ctb = new CsvToBean<>();
     return ctb.parse(mappingStrategy, csvReader);
 }
 
-def retry(int times = 5, Closure errorHandler = { e -> log.warn(e.message, e) }
+def retry(int times = 5, Closure errorHandler = { e -> println e.message }
           , Closure body) {
     int retries = 0
     def exceptions = []
@@ -153,5 +156,5 @@ def retry(int times = 5, Closure errorHandler = { e -> log.warn(e.message, e) }
             errorHandler.call(e)
         }
     }
-    //throw new Exception(">>> Failed after $times retries")
+    throw new Exception(">>> Failed after $times retries")
 }

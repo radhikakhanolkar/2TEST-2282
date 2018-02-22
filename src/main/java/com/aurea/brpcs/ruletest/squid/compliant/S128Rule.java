@@ -10,10 +10,11 @@ public final class S128Rule {
                 } else {
                     break;
                 }
-            case 1:
+            case 2:
                 System.out.println("abc");
                 return;
-            case 2:
+            case 3:
+            case 4:
                 break;
             default:
         }
@@ -40,6 +41,42 @@ public final class S128Rule {
                 break;
             default:
                 return;
+        }
+    }
+
+    private TestA check2(byte b, char c) {
+        int myVariable = 0;
+        switch (myVariable) {
+            case 12: // Compliant
+                try {
+                    return new TestA(true);
+                } catch (Exception e) {
+                    throw new RuntimeException("Wrapping", e);
+                }
+            case 9: // Compliant
+        }
+
+        return new TestA(false);
+    }
+
+
+    private void check3(int myVariable) {
+        for (int i = 0; i < 1; i++) {
+            switch (myVariable) {
+                case 0: // Compliant
+                    continue; // belongs to for loop
+                case 1:
+                    break;
+            }
+        }
+    }
+
+    class TestA{
+
+        boolean bool;
+
+        TestA(boolean bool){
+            this.bool = bool;
         }
     }
 
