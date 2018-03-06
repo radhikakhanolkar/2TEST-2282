@@ -16,6 +16,10 @@ public class S2112Rule {
         if (homepage.equals(uri)) {  // Compliant
             // ...
         }
+        com.aurea.brpcs.ruletest.helpers.URL helper = new com.aurea.brpcs.ruletest.helpers.URL();
+        if (helper.equals("")){   // Compliant
+
+        }
     }
 
 }
