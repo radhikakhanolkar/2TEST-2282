@@ -17,7 +17,7 @@ public class S2112Rule {
         if (homepage.equals(uri)) {  // Compliant
             // ...
         }
-        URL helper = new URL();
+        URL helper = new URL();   // Compliant
         if (helper.equals("")){   // Compliant
 
         }
