@@ -1,22 +1,23 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
+import com.aurea.brpcs.ruletest.helpers.URL;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 public class S2112Rule {
 
-    public void checkUrl(URL url) throws URISyntaxException {
+    public void checkUrl(java.net.URL url) throws URISyntaxException {
         Set<URI> sites = new HashSet<URI>();  // Compliant
+        Set<URL> urls = new HashSet<URL>();  // Compliant
 
         URI homepage = new URI("http://sonarsource.com");  // Compliant
         URI uri = url.toURI();
         if (homepage.equals(uri)) {  // Compliant
             // ...
         }
-        com.aurea.brpcs.ruletest.helpers.URL helper = new com.aurea.brpcs.ruletest.helpers.URL();
+        URL helper = new URL();
         if (helper.equals("")){   // Compliant
 
         }
