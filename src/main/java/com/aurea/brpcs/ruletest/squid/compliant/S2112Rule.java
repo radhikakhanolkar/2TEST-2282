@@ -17,7 +17,7 @@ public class S2112Rule {
         if (homepage.equals(uri)) {  // Compliant
             // ...
         }
-        URL helper = new URL();   // Compliant
+        URL helper = new URL("http://sonarsource.com");   // Compliant
         if (helper.equals("")){   // Compliant
 
         }
