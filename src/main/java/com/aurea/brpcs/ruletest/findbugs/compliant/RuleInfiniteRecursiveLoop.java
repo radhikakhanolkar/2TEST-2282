@@ -91,6 +91,10 @@ public class RuleInfiniteRecursiveLoop extends RuleInfiniteRecursiveLoopCompare{
         return super.compareTo(s);
     }
 
+    void methodB() {
+        super.methodB();
+    }
+
 }
 class RuleInfiniteRecursiveLoopCompare implements Comparable<RuleInfiniteRecursiveLoopCompare> {
 
@@ -98,5 +102,8 @@ class RuleInfiniteRecursiveLoopCompare implements Comparable<RuleInfiniteRecursi
     @Override
     public int compareTo(RuleInfiniteRecursiveLoopCompare o) {
         return 0;
+    }
+
+    void methodB() {
     }
 }
