@@ -14,6 +14,9 @@ public class S2112Rule {
         if (homepage.equals(url)) { // Noncompliant
             // ...
         }
+        if (homepage.hashCode() > 0){ // Noncompliant
+            // ...
+        }
     }
 
 }

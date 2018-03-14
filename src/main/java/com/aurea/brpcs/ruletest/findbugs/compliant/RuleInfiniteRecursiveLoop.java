@@ -3,7 +3,7 @@ package com.aurea.brpcs.ruletest.findbugs.compliant;
 import java.util.Arrays;
 import java.util.List;
 
-public class RuleInfiniteRecursiveLoop {
+public class RuleInfiniteRecursiveLoop extends RuleInfiniteRecursiveLoopCompare{
 
     private String name;
     private Integer age;
@@ -69,4 +69,41 @@ public class RuleInfiniteRecursiveLoop {
 
     }
 
+    void checkCatchInterruptedException(){
+        while(!Thread.interrupted()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                checkCatchInterruptedException();
+            }
+        }
+    }
+
+    boolean h(boolean in) {
+        if (in) {
+            h(!in);
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(RuleInfiniteRecursiveLoopCompare s) {
+        return super.compareTo(s);
+    }
+
+    void methodB() {
+        super.methodB();
+    }
+
+}
+class RuleInfiniteRecursiveLoopCompare implements Comparable<RuleInfiniteRecursiveLoopCompare> {
+
+
+    @Override
+    public int compareTo(RuleInfiniteRecursiveLoopCompare o) {
+        return 0;
+    }
+
+    void methodB() {
+    }
 }

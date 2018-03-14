@@ -54,4 +54,9 @@ public class RuleInfiniteRecursiveLoop {
     void doNothing() {
 
     }
+
+    public int compareTo(final RuleInfiniteRecursiveLoop o) {
+        return compareTo(o);
+    }
+
 }
