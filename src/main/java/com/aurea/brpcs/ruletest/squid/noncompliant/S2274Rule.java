@@ -1,5 +1,11 @@
 package com.aurea.brpcs.ruletest.squid.noncompliant;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class S2274Rule {
 
     public void waitTest() throws InterruptedException {
@@ -20,5 +26,10 @@ public class S2274Rule {
                 obj.wait(1000);
             }
         }
+    }
+
+    public void testUtilCondition() throws InterruptedException {
+        Condition notFull  = new ReentrantLock().newCondition();
+        notFull.await(1,TimeUnit.MINUTES);
     }
 }

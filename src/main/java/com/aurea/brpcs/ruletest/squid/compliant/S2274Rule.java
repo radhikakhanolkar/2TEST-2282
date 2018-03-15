@@ -2,6 +2,9 @@ package com.aurea.brpcs.ruletest.squid.compliant;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class S2274Rule {
 
@@ -39,6 +42,16 @@ public class S2274Rule {
             }
         }
         myThread.start();
+    }
+
+    public void testUtilCondition() throws InterruptedException {
+        Lock lock = new ReentrantLock();
+        Condition notFull = lock.newCondition();
+        int obj = 0;
+        do {
+            obj++;
+            notFull.await(1,TimeUnit.MINUTES);
+        } while (obj < 10);
     }
 
     public void testCountDownLatch() throws InterruptedException {
