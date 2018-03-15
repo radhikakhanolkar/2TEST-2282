@@ -1,9 +1,15 @@
 package com.aurea.brpcs.ruletest.squid.compliant;
 
-import com.aurea.brpcs.ruletest.helpers.squid.Random;
+
+import java.security.SecureRandom;
+import java.util.Random;
 
 public class S2245Rule {
 
-    private final Random r = new Random(12);
+    public void doSomething() {
+        Random random = new SecureRandom();
+        byte bytes[] = new byte[20];
+        random.nextBytes(bytes);
+    }
 
 }
