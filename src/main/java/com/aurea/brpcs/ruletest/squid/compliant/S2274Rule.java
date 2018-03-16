@@ -44,6 +44,19 @@ public class S2274Rule {
         myThread.start();
     }
 
+    public void testInsideForLoop() throws InterruptedException {
+        Thread myThread = new Thread();
+        Integer x = 1;
+        synchronized (new Object()) {
+            for (;;) {
+                x++;
+                x.wait(TIMEOUT);
+                if(x>1000) break;
+            }
+        }
+        myThread.start();
+    }
+
     public void testUtilCondition() throws InterruptedException {
         Lock lock = new ReentrantLock();
         Condition notFull = lock.newCondition();
@@ -53,6 +66,7 @@ public class S2274Rule {
             notFull.await(1,TimeUnit.MINUTES);
         } while (obj < 10);
     }
+
 
     public void testCountDownLatch() throws InterruptedException {
         CountDownLatch startSignal = new CountDownLatch(1);
