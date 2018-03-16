@@ -1,73 +1,36 @@
 package com.aurea.brpcs.ruletest.squid.noncompliant;
 
-public class S1871Rule {
 
-	public void anIfMethod(int a) {
+public class S1860Rule{
 
-		if (a >= 0 && a < 10) {
-			doFirstThing();
-			doTheThing();
-		} else if (a >= 10 && a < 20) {
-			doTheOtherThing();
-		} else if (a >= 20 && a < 50) {
-			doFirstThing();
-			doTheThing(); // Noncompliant; duplicates first condition
-		} else {
-			doTheRest();
-		}
-	}
+    public void simpleCalls(){
+        complaint();
+        nonComplaint1();
+        nonComplaint2();
+    }
 
-	private void doTheOtherThing() {
-		// TODO Auto-generated method stub
+    private void complaint() {
+        Object lock=null;
+        synchronized (lock)
+        {
+            System.out.println("complaint()");
+        }
+    }
 
-	}
 
-	private void doTheThing() {
-		// TODO Auto-generated method stub
+    public void nonComplaint1() {
+            Integer lock=1;
+            synchronized (lock)
+            {
+                System.out.println("nonComplaint2()");
+            }
+        }
 
-	}
 
-	public void aSwitchMethod(int i) {
-
-		switch (i) {
-		case 1:
-			doFirstThing();
-			doSomething();
-			break;
-		case 2:
-			doSomethingDifferent();
-			break;
-		case 3: // Noncompliant; duplicates case 1's implementation
-			doFirstThing();
-			doSomething();
-			break;
-		case 4:
-			doSomethingDifferent();  // compliant; Only 1 implementation line (case 2)
-			break;
-		default:
-			doTheRest();
-		}
-
-	}
-
-	private void doTheRest() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void doSomethingDifferent() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void doSomething() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void doFirstThing() {
-		// TODO Auto-generated method stub
-
-	}
-
+    public void nonComplaint2 () {
+            java.lang.Integer lock=1;
+           synchronized (lock) {
+                System.out.println("nonComplaint3()");
+            }
+        }
 }
