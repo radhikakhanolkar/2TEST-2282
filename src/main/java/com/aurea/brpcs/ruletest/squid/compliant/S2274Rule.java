@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class S2274Rule {
 
     private static final int TIMEOUT = 2000;
+    Condition classCondition;
 
     public void waitTest() throws InterruptedException {
         Integer obj = 1;
@@ -67,6 +68,15 @@ public class S2274Rule {
         } while (obj < 10);
     }
 
+    public void testUtilClassCondition() throws InterruptedException {
+        Lock lock = new ReentrantLock();
+        classCondition = lock.newCondition();
+        int obj = 0;
+        do {
+            obj++;
+            classCondition.await(1,TimeUnit.MINUTES);
+        } while (obj < 10);
+    }
 
     public void testCountDownLatch() throws InterruptedException {
         CountDownLatch startSignal = new CountDownLatch(1);
