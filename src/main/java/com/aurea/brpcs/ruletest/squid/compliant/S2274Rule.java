@@ -78,6 +78,14 @@ public class S2274Rule {
         } while (obj < 10);
     }
 
+    public void testUtilCondition(Condition condition) throws InterruptedException {
+        int obj = 0;
+        do {
+            obj++;
+            condition.await(1,TimeUnit.MINUTES);
+        } while (obj < 10);
+    }
+
     public void testCountDownLatch() throws InterruptedException {
         CountDownLatch startSignal = new CountDownLatch(1);
         startSignal.await(1, TimeUnit.MINUTES);

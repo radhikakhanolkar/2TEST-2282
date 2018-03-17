@@ -38,4 +38,7 @@ public class S2274Rule {
         classCondition.await(1, TimeUnit.MINUTES);
     }
 
+    public void testUtilCondition(Condition condition) throws InterruptedException {
+        condition.await(1,TimeUnit.MINUTES);
+     }
 }
