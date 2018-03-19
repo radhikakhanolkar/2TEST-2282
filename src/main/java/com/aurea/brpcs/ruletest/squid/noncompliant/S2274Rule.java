@@ -6,6 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class S2274Rule {
 
+    Condition classCondition;
+
     public void waitTest() throws InterruptedException {
         Integer obj = new Integer(1);
         synchronized (obj) {
@@ -30,4 +32,13 @@ public class S2274Rule {
         Condition notFull = new ReentrantLock().newCondition();
         notFull.await(1, TimeUnit.MINUTES);
     }
+
+    public void testUtilClassCondition() throws InterruptedException {
+        classCondition = new ReentrantLock().newCondition();
+        classCondition.await(1, TimeUnit.MINUTES);
+    }
+
+    public void testUtilCondition(Condition condition) throws InterruptedException {
+        condition.await(1,TimeUnit.MINUTES);
+     }
 }
