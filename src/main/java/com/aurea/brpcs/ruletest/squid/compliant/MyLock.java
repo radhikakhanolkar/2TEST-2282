@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MyLock implements Lock {
     private Lock lock = new ReentrantLock();
-    
+
     @Override
     public void lock() {
         lock.lock();

@@ -64,6 +64,15 @@ public class S2222Rule {
         }
     }
 
+    public void anyMethod2() {
+        try {
+            System.out.println("in anyMethod");
+            lock.lock();
+        }finally {
+            lock.unlock();
+        }
+    }
+
     public Lock getLock(){
         return lock;
     }

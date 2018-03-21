@@ -14,14 +14,7 @@ public class S2222Rule {
 						lock.unlock();//non-compliant
 				}
 		}
-		public void anyMethod() {
-				try {
-						System.out.println("in anyMethod");
-						lock.lock();
-				}finally {
-						lock.unlock();
-				}
-		}
+
     public boolean m() throws InterruptedException {
         if(! lock.tryLock(2 , TimeUnit.MILLISECONDS ) ) {
             return false;
