@@ -8,7 +8,7 @@ public class S2222Rule {
     private Lock lock = new ReentrantLock();
 
     public void doSomething() {
-        if (isInitialized()) { // Noncompliant
+        if (isInitialized()) {
             lock.lock();
             System.out.println("in doSomethingMethod");
             lock.unlock();
@@ -33,6 +33,16 @@ public class S2222Rule {
             lock.unlock();
         }
         return true;
+    }
+
+    public void anyMethod3() {
+        if(lock.tryLock() ) {
+            try {
+                // ... method body
+            } finally {
+                lock.unlock();
+            }
+        }
     }
     public void doSomething2() {
 

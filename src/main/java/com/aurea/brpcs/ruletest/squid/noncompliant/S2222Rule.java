@@ -15,7 +15,7 @@ public class S2222Rule {
 				}
 		}
 
-    public boolean m() throws InterruptedException {
+    public boolean doSomething2() throws InterruptedException {
         if(! lock.tryLock(2 , TimeUnit.MILLISECONDS ) ) {
             return false;
         }
