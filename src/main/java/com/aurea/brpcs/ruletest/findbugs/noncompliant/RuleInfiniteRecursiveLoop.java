@@ -1,7 +1,7 @@
 package com.aurea.brpcs.ruletest.findbugs.noncompliant;
 
 public class RuleInfiniteRecursiveLoop {
-
+    private Integer age;
     //Test case 1
     void testLoop(String b) {
         testLoop("dfdsfsd");
@@ -50,7 +50,17 @@ public class RuleInfiniteRecursiveLoop {
             testLoop6(b, x);
         } while (x > 5);
     }
-
+    // Test case 7
+    void testLoop7() {
+        switch (age) {
+            case 1:
+                testLoop7();
+                break;
+            case 2:
+                doNothing();
+                break;
+        }
+    }
     void doNothing() {
 
     }
