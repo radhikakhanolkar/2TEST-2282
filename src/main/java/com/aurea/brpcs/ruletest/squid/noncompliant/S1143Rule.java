@@ -51,4 +51,25 @@ public class S1143Rule {
             }
         }
     }
+
+    public static void case5() {
+        int x = 0;
+        switch (x){
+            case 1:
+               doSomething();
+               break;
+            default:
+                try {
+                    x++;
+                    throw new RuntimeException();
+                } finally {
+                    break;                         // Non-Compliant - prevents the RuntimeException from being propagated
+                }
+        }
+
+    }
+
+    public static void doSomething(){
+
+    }
 }
