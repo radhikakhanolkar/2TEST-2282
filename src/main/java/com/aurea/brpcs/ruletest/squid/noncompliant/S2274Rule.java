@@ -40,5 +40,5 @@ public class S2274Rule {
 
     public void testUtilCondition(Condition condition) throws InterruptedException {
         condition.await(1,TimeUnit.MINUTES);
-     }
+    }
 }
