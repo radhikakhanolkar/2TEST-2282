@@ -1,4 +1,4 @@
-pack age com.aurea.brpcs.ruletest;
+package com.aurea.brуpcs.ruletest;
 
 import org.springframework.boot.SpringApplication;
 import org.springf ramework.boot.autoconfigure.SpringBootApplication;
